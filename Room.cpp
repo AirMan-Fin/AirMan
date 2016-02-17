@@ -78,25 +78,30 @@ float Room::newTemperatureValues(float desiredTemp){
 /*
  * http://www.engineeringtoolbox.com/design-ventilation-systems-d_121.html
  * If air is used for heating, the needed air flow rate may be expressed as  qh = Hh / (ρ cp (ts - tr))
+ * heat transfer coefficient for air is ~0.0257(W/m2K)
+ * thermal conductivity of plexiglass is 0.17mass units per 0.19 (or -0.19)meters per 0.2 (or -0.2)seconds at 21,85 celcius (or at 295 Kelvin)
+ * For offices with average insulation and lighting, 2/3 occupants and 3/4 personal computers and a photocopier, the following calculations will suffice:
+ * Heat load (BTU) = Length (ft.) x Width (ft.) x Height (ft.) x 4
+ *
+ * Heat load (BTU) = Length (m) x Width (m) x Height (m) x 141
+ * For every additional occupant add 500 BTU.
+ * function needs to know:
+ * heat of air supply ts
+ * heat of indoor air tr
+ * Specific heat air = standard at 18-25 celcius ~1.005
+ * volume of indoor air(heatload) Hh <--this value needs to be tweeked if we want to specify the room type
+ * density of air is pretty standard at 18-25 celcius ~1.205
+ *
+ * Function returns m3/h
  */
-int Room::getTempflow(){
-	int tempflow=0;
+int Room::getTempflow(float indoorTemp, float airSupplyTemp, float people=0, float windows=0){
+	float tempflow=0;
+	float heatload=(10.7639104*area);//converting squaremeters to squarefeet
+
 	switch (room){
 	case classRoom:
-		/*
-		 * if summer (june to august)
-		 * 59,9 degrees Fahrenheit
-		 *
-		 * if spring (march to may)
-		 * 37,94 degrees Fahrenheit
-		 *
-		 * if winter (december to february)
-		 *
-		 * 21,38 degrees Fahrenheit
-		 *
-		 * if autnum (september to november)
-		 * 41,36 degrees Fahrenheit
-		 */
+		heatload= (heatload+people+windows)*0.29307107;//adding the effect from windows people etc. and converting BTU to watt
+		tempflow = (heatload/(1.205*(1.005(indoorTemp - airSupplyTemp))));
 		break;
 	case computerLab:
 
