@@ -20,6 +20,16 @@
  * publicArea=4
  * temperature is the desired temperature
  */
+#define auditoriumPeopleDensity 6
+#define coumputerLabPeopleDensity 2
+#define classRoomPeopleDensity 3
+#define officePeopleDensity 10
+#define airDensity 1.205
+#define SpecificHeat 1005
+#define peopleMultiplier 600
+#define machineryMultiplier 300
+#define windowMultiplier 170
+
 Room::Room(int floor = 400000, int height1=25000,float temp = 21.00, roomType type=classRoom){
 	area= floor;
 	height= height1;
@@ -29,50 +39,29 @@ Room::Room(int floor = 400000, int height1=25000,float temp = 21.00, roomType ty
 }
 /*
  * returns Cubics in mm3
- * returns 0 if no values were changed
  */
 int Room::newCubicValues(int floor = cubic, int height1=height){
-	if(height != height1 || floor!= area){
 	height= height1;
 	area= floor;
 	return height * area;
-	}
-	return 0;
+
 }
 
 /*
  * Returns the number of people
- * returns 0 if no values were changed
  */
 int Room::newPersonValues(int newGuy){
-	if(people != newGuy){
 	people =newGuy;
 	return people;
-	}
-	return 0;
-}
-/*
- * Returns the number of furniture
- * returns 0 if no values were changed
- */
-int Room::newFurnitureValues(int newFurniture){
-	if(newFurniture != furniture){
-		furniture = newFurniture;
-		return furniture;
-	}
-	return 0;
 }
 /*
  * returns the desired temperature
- * returns 0 if temperature was not altered
  */
-float Room::newTemperatureValues(float desiredTemp){
+float Room::newTemperatureValues(float desiredTemp,float insideTemp=21.0,float outsideTemp=15.0){
 
-	if(temperature != desiredTemp){
-		temperature = desiredTemp;
+		temperature = desiredTemp+getVentHeatLoss(insideTemp,outsideTemp);
 				return temperature;
-	}
-	return 0;
+
 }
 
 /*
@@ -94,53 +83,48 @@ float Room::newTemperatureValues(float desiredTemp){
  *
  * Function returns m3/h
  */
-int Room::getTempflow(float indoorTemp, float airSupplyTemp, float people=0, float windows=0){
-	float tempflow=0;
+float Room::getAirflow(float indoorTemp=21.0, float airSupplyTemp=21.0,
+						float people=0,float windows=0, int machinery=0){
+
 	float heatload=(10.7639104*area);//converting squaremeters to squarefeet
 
 	switch (room){
 	case classRoom:
-		heatload= (heatload+people+windows)*0.29307107;//adding the effect from windows people etc. and converting BTU to watt
-		tempflow = (heatload/(1.205*(1.005(indoorTemp - airSupplyTemp))));
+		people = area/classRoomPeopleDensity;
+		heatload= (heatload+(people*peopleMultiplier)+(windows*windowMultiplier))*0.29307107;//adding the effect from windows people etc. and converting BTU to watt
+		airflow = (heatload/(airDensity*(spesificHeat(indoorTemp - airSupplyTemp))))*3600;// put it in a airFlow function and turn it to m3/h
+		return airflow;
 		break;
 	case computerLab:
-
+		people = area/computerLabPeopleDensity;
+		heatload= (heatload+(people*peopleMultiplier)+(machinery*machineryMultiplier))*0.29307107;
+		airflow = (heatload/(airDensity*(spesificHeat(indoorTemp - airSupplyTemp))))*3600;// put it in a airFlow function and turn it to m3/h
+		return airflow;
 		break;
 	case auditorium:
-
+		people = area/auditoriumPeopleDensity;
+		heatload= (heatload+(people*peopleMultiplier))*0.29307107;
+		airflow = (heatload/(airDensity*(spesificHeat(indoorTemp - airSupplyTemp))))*3600;// put it in a airFlow function and turn it to m3/h
+		return airflow;
 		break;
 	case office:
-
-		break;
-	case publicArea:
-
+		people = area/officePeopleDensity;
+		airflow = (heatload/(airDensity*(spesificHeat(indoorTemp - airSupplyTemp))))*3600;
+		return airflow;
 		break;
 	}
 }
-/*
- * http://www.engineeringtoolbox.com/indoor-temperature-humidity-d_114.html
- * Carbon dioxide (CO2) concentration in "clean" air is 575 mg/m3.
- * Huge concentrations can cause headaches and the concentration should be below 9000 mg/m3.
- * sitting person emits 20cm3 of Carbon dioxide per hour
- */
-int Room::getAirflow(){
-	switch (room){
-		case classRoom:
 
-			break;
-		case computerLab:
+int Room::getVentHeatLoss(float insideTemp=21.0, float outsideTemp=15.0,bool recovery=0){
 
-			break;
-		case auditorium:
-
-			break;
-		case office:
-
-			break;
-		case publicArea:
-
-			break;
+	heatloss=spesificHeat*airDensity*(getAirFlow()(insideTemp-outsideTemp));
+	if(recovery){
+		heatloss=(1 - recoveryEfficiency/100)*heatloss;
 	}
-	return 0;
+	return heatloss;
 }
 
+void Room::update(){
+newTemperatureValues();
+getAirFlow(temperature);
+}
