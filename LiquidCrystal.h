@@ -81,6 +81,7 @@ public:
   void print(std::string& s);
   void print(char *s);
   void print(const char *s);
+  void print(int);
 
 
   void createChar(uint8_t, uint8_t[]);

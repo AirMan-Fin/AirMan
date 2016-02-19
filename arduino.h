@@ -3,8 +3,8 @@
 #ifndef LCD_PORT_H_
 #define LCD_PORT_H_
 
-//#include <string>
-//#include <sstream>
+#include <string>
+#include <sstream>
 
 /* Definitions needed by Arduino LiquidCrystal library
  *
@@ -19,9 +19,9 @@
 //template<typename T> std::string toStr(T);
 
 void enRit();
-void digitalWrite(uint8_t pin, uint8_t val);
-bool digitalRead(uint8_t pin);
-void pinMode(uint8_t pin, uint8_t mode);
+void digitalWrite(int pin, int val);
+bool digitalRead(int pin);
+void pinMode(int pin, int mode);
 void delayMicroseconds(int us);
 void delay(int ms);
 
@@ -45,6 +45,10 @@ public:
 	int read();
 };
 
-
+template<typename T> std::string toStr(T t) {
+	std::stringstream ss;
+	ss << t;
+	return ss.str();
+}
 
 #endif /* LCD_PORT_H_ */

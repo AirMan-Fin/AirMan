@@ -5,13 +5,20 @@
 
 class Heater{
 private:
-	bool autoMode;
 	int temp;
 public:
 	Heater();
 
-	void update(int);
-	void setTemp();
+	/*
+	 * check if working as should
+	 * param: new target temperature
+	 */
+	void update(int t=0);
+
+	/*
+	 * set target temperature for air in pipe near heater
+	 */
+	void setTemp(int);
 };
 
 #endif

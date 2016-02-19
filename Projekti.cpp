@@ -20,6 +20,8 @@
 
 // TODO: insert other include files here
 #include "arduino.h"
+#include "InterFace.h"
+#include "Clock.h"
 
 // TODO: insert other definitions and declarations here
 #define TICKRATE 1000
@@ -36,7 +38,7 @@ extern "C" {
 void SysTick_Handler() {
 	millis++;
 	if (millis % 1000 == 0) {
-		flTick = 1;
+		//flTick = 1;
 	}
 	if (millis % 10 == 0) {
 		flInterfaceTick = 1;
@@ -57,12 +59,13 @@ int main(void) {
 	SysTick_Config(Chip_Clock_GetSysTickClockRate() / TICKRATE);
 	enRit();
 	// TODO: insert code here
-	Fan fan;
+	//Fan fan;
 	Heater heater;
 
-	Room room(15000, 2700);
+	//Room room(15000, 2700);
+	Clock clock;
 
-	Interface interface(room);
+	Interface interface(&clock,8,9,10,11,12,13);
 	interface.lcdBegin();
 	interface.initButtons(but1pin, but2pin, but3pin, but4pin);
 
@@ -75,9 +78,11 @@ int main(void) {
 
 		if (flTick) {
 			flTick = 0;
-			room.update();
-			heater.update(room.getTempflow());
-			fan.update(room.getAirflow());
+			clock.tick();
+			interface.tick();
+			//room.update();
+			heater.update();
+			//fan.update(room.getAirflow());
 		}
 	}
 

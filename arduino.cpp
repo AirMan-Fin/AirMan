@@ -7,7 +7,7 @@
 
 /* compatibility layer */
 #include "board.h"
-#include "lcd_port.h"
+#include "arduino.h"
 #include <cstdio>
 //#include <string>
 //#include <sstream>
@@ -28,19 +28,19 @@ void RIT_IRQHandler(void) {
 static const int dPort[] = { 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0 };
 static const int dPin[] = { 10, 9, 29, 9, 10, 16, 3, 0, 24, 0, 27, 28, 12, 14 };
 
-void digitalWrite(uint8_t pin, uint8_t val) {
+void digitalWrite(int pin, int val) {
 	if (pin > 13)
 		return;
 	Chip_GPIO_SetPinState(LPC_GPIO, dPort[pin], dPin[pin], val);
 }
 
-bool digitalRead(uint8_t pin) {
+bool digitalRead(int pin) {
 	if (pin > 13)
 		return 0;
 	return !Chip_GPIO_GetPinState(LPC_GPIO, dPort[pin], dPin[pin]);
 }
 
-void pinMode(uint8_t pin, uint8_t mode) {
+void pinMode(int pin, int mode) {
 	if (mode == OUTPUT) {
 		Chip_GPIO_SetPinDIROutput(LPC_GPIO, dPort[pin], dPin[pin]);
 	} else {

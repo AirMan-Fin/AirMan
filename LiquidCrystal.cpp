@@ -334,6 +334,10 @@ void LiquidCrystal::print(char *s) {
 	}
 }
 
+void LiquidCrystal::print(int s) {
+	print(toStr(s).c_str());
+}
+
 void LiquidCrystal::print(const char *s) {
 	int len = 0;
 	for (int a = 0; a < 16; a++) {
