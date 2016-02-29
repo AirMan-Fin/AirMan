@@ -1,7 +1,7 @@
 #include "Clock.h"
 
 Clock::Clock() {
-
+	modState=0;
 }
 
 void Clock::setTime(int sec2, int min2, int hour2, int day2, int month2,

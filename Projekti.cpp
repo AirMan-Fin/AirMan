@@ -20,6 +20,8 @@
 
 // TODO: insert other include files here
 #include "arduino.h"
+#include "Fan.h"
+#include "Heater.h"
 #include "InterFace.h"
 #include "Clock.h"
 
@@ -38,7 +40,7 @@ extern "C" {
 void SysTick_Handler() {
 	millis++;
 	if (millis % 1000 == 0) {
-		//flTick = 1;
+		flTick = 1;
 	}
 	if (millis % 10 == 0) {
 		flInterfaceTick = 1;
@@ -81,7 +83,7 @@ int main(void) {
 			clock.tick();
 			interface.tick();
 			//room.update();
-			heater.update();
+			//heater.update(room.getHeatflow());
 			//fan.update(room.getAirflow());
 		}
 	}

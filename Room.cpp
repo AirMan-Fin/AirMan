@@ -42,10 +42,10 @@ Room::Room(int floor = 40, float height1=2.5,float temp = 21.00, roomType type=c
  * returns space in mm3
  */
 int Room::newCubicValues(int floor=0, int height1=0){
-	if(floor=0){
+	if(floor==0){
 		floor=area;
 	}
-	if(height1=0){
+	if(height1==0){
 		height1=height;
 	}
 	height= height1*1000;

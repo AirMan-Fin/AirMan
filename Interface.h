@@ -11,16 +11,26 @@
 
 class MainMenu: public MenuItem {
 private:
-	int timer=0;
+	int timer;
 public:
-	MainMenu(char * nam) {
-		name = (std::string) nam;
+	MainMenu(std::string nam) {
+		name =  nam;
+		timer=0;
 	}
 
 
+	void up(){
+		timer=0;
+		MenuItem::up();
+	}
+
+	void down(){
+		timer=0;
+		MenuItem::down();
+	}
 
 	void display() {
-		timer=0;
+
 		func();
 		//printf((mm[place]->name).c_str());
 		//printf("\n");
@@ -42,8 +52,8 @@ private:
 	int *temp;
 	Clock * clock;
 public:
-	DataMenu(char * nam, Clock *c) {
-		name = (std::string) nam;
+	DataMenu(std::string nam, Clock *c) {
+		name =  nam;
 		clock = c;
 	}
 
@@ -71,7 +81,7 @@ public:
 		lcd->setCursor(0, 1);
 		std::string str = toStr(*temp);
 		lcd->print(str);
-		for (int a = 0; a < (8 - str.length()); a++) {
+		for (unsigned int a = 0; a < (8 - str.length()); a++) {
 			lcd->write(' ');
 		}
 		if (clock->hour < 10)
@@ -90,8 +100,8 @@ class SettingsMenu: public MenuItem {
 private:
 
 public:
-	SettingsMenu(char * nam) {
-		name = (std::string) nam;
+	SettingsMenu(std::string nam) {
+		name = nam;
 	}
 
 	void display() {
@@ -104,8 +114,8 @@ class RoomMenu: public MenuItem {
 private:
 
 public:
-	RoomMenu(char * nam) {
-		name = (std::string) nam;
+	RoomMenu(std::string nam) {
+		name =  nam;
 	}
 
 	void display() {
@@ -115,34 +125,42 @@ public:
 
 };
 
+
 class RoomTempMenu: public EndMenu {
 
+
 public:
-	RoomTempMenu(char * nam, float t, float min2 = 0, float max2 = 100,
+	RoomTempMenu(std::string nam, float t, float min2 = 0, float max2 = 100,
 			float inter = 1) {
 		value = temp = t;
 		min = min2;
 		max = max2;
-		name = (std::string) nam;
+		name =  nam;
 		intervall = inter;
 	}
 
 };
+
 class RoomSpaceMenu: public EndMenu {
 private:
-	int modState2 = 0;
-	float temp2 = 3;
-	float value2 = 3;
-	float max2 = 10;
-	float min2 = 1;
+	int modState2;
+	float temp2;
+	float value2;
+	float max2;
+	float min2;
 public:
-	RoomSpaceMenu(char * nam, int t, int min2_ = 0, int max2_ = 100, int inter =
+	RoomSpaceMenu(std::string nam, int t, int min2_ = 0, int max2_ = 100, int inter =
 			1) {
 		value = temp = t;
 		min = min2_;
 		max = max2_;
-		name = (std::string) nam;
+		name =  nam;
 		intervall = inter;
+		modState2=0;
+		temp2=3;
+		value2=3;
+		max2=10;
+		min2=0;
 	}
 
 	void ok() {
@@ -217,12 +235,12 @@ public:
 class RoomTypeMenu: public EndMenu {
 
 public:
-	RoomTypeMenu(char * nam, int t, int min2 = 0, int max2 = 100,
+	RoomTypeMenu(std::string nam, int t, int min2 = 0, int max2 = 100,
 			int inter = 1) {
 		value = temp = t;
 		min = min2;
 		max = max2;
-		name = (std::string) nam;
+		name =  nam;
 		intervall = inter;
 	}
 
@@ -254,12 +272,12 @@ public:
 class RoomWindowsMenu: public EndMenu {
 
 public:
-	RoomWindowsMenu(char * nam, int t, int min2 = 0, int max2 = 100, int inter =
+	RoomWindowsMenu(std::string nam, int t, int min2 = 0, int max2 = 100, int inter =
 			1) {
 		value = temp = t;
 		min = min2;
 		max = max2;
-		name = (std::string) nam;
+		name =  nam;
 		intervall = inter;
 	}
 
@@ -268,12 +286,12 @@ public:
 class RoomHeatRecoverMenu: public EndMenu {
 
 public:
-	RoomHeatRecoverMenu(char * nam, int t, int min2 = 0, int max2 = 100,
+	RoomHeatRecoverMenu(std::string nam, int t, int min2 = 0, int max2 = 100,
 			int inter = 1) {
 		value = temp = t;
 		min = min2;
 		max = max2;
-		name = (std::string) nam;
+		name =  nam;
 		intervall = inter;
 	}
 
@@ -298,15 +316,16 @@ public:
 
 };
 
+
 class SettingsBrigthnessMenu: public EndMenu {
 
 public:
-	SettingsBrigthnessMenu(char * nam, int t, int min2 = 0, int max2 = 100,
+	SettingsBrigthnessMenu(std::string nam, int t, int min2 = 0, int max2 = 100,
 			int inter = 1) {
 		value = temp = t;
 		min = min2;
 		max = max2;
-		name = (std::string) nam;
+		name =  nam;
 		intervall = inter;
 	}
 
@@ -315,7 +334,7 @@ public:
 class SettingsClockMenu: public EndMenu {
 private:
 	Clock *clock;
-	int modState2 = 0;
+	int modState2;
 
 	int tempMin;
 	int tempHour;
@@ -323,26 +342,27 @@ private:
 	int tempMonth;
 	int tempYear;
 public:
-	SettingsClockMenu(char * nam, Clock * c) {
-		name = (std::string) nam;
+	SettingsClockMenu(std::string nam, Clock * c) {
+		name =  nam;
 		clock = c;
+		modState2=0;
 
 	}
 
 	void ok() {
-		if (modState == 0) {
+		if (modState2 == 0) {
 			clock->modState = 0;
 		} else {
 			clock->modState = 1;
 		}
-		modState++;
-		if (modState > 5) {
-			modState = 0;
+		modState2++;
+		if (modState2 > 5) {
+			modState2 = 0;
 		}
 	}
 
 	void up() {
-		switch (modState) {
+		switch (modState2) {
 		case 1:
 			clock->hour++;
 			break;
@@ -362,7 +382,7 @@ public:
 	}
 
 	void down() {
-		switch (modState) {
+		switch (modState2) {
 		case 1:
 			clock->hour--;
 			break;
@@ -408,6 +428,7 @@ public:
 
 	}
 };
+
 
 class Interface {
 private:

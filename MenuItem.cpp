@@ -60,7 +60,7 @@ void MenuItem::setCurrent(MenuItem *c) {
 	(*current) = c;
 }
 
-void tick(){
+void MenuItem::tick(){
 
 }
 

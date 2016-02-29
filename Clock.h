@@ -12,7 +12,7 @@ public:
 	int month;
 	int year;
 
-	bool modState=0;
+	bool modState;
 
 	Clock() ;
 

@@ -3,7 +3,7 @@
 
 
 EndMenu::EndMenu() {
-
+	modState=0;
 	}
 
 	void EndMenu::ok() {

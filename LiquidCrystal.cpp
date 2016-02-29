@@ -315,7 +315,7 @@ void LiquidCrystal::write8bits(uint8_t value) {
 void LiquidCrystal::print(std::string& s) {
 
 
-	for (int a = 0; a < s.size(); a++) {
+	for (unsigned int a = 0; a < s.size(); a++) {
 		write(s[a]);
 
 	}

@@ -7,7 +7,7 @@
 
 class EndMenu: public MenuItem {
 public:
-	bool modState = 0;
+	bool modState;
 
 	std::string text;
 	float max;

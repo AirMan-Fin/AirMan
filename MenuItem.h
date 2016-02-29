@@ -14,7 +14,7 @@ public:
 
 	std::vector<MenuItem *> mm;
 
-	int place;
+	unsigned int place;
 
 	LiquidCrystal *lcd;
 
