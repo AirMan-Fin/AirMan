@@ -120,6 +120,7 @@ float Room::getAirflow(float indoorTemp=21.0, float airSupplyTemp=21.0,
 		return airflow;
 		break;
 	}
+	return 0;
 }
 
 float Room::getVentHeatLoss(float insideTemp=21.0, float outsideTemp=15.0,bool recovery=0){
