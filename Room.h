@@ -5,29 +5,40 @@
 
 class Room{
 private:
-	int cubic;
+	int area;
 	int height;
 	int space;
 
 	int airVariable;
 	int tempVariable;
-	int people;
-	int furniture;
-
+	float temperature;
+	float heatloss=0;
+	float airflow;
 	int temperate;
 	int humidity;
+	enum roomType{
+		classRoom=0,
+		computerLab=1,
+		auditorium=2,
+		office=3,
+		publicArea=4
+	};
+	roomType room;
 
-	void calculate();
+	void calculate();// not used
 public:
-	Room(int,int);
-	void update(int, int);
+	Room(int,int,roomType);
+	void update();//not used
 
-	int getAirflow();
-	int getTempflow();
+	float getAirflow(float,float,float,float);
+	float getVentHeatLoss(float);
 
-	int newCubicValues(int sp=space, int he= height);
+	int newCubicValues(int, int);
 	int newPersonValues(int);
 	int newFurnitureValues(int);
+	float newTemperatureValues(float);
+	void save();//not used
+	void setHeat();
 };
 
 #endif
