@@ -43,18 +43,24 @@ public:
 			timer=0;
 			place=0;
 			MenuItem::ok();
+			(*current)->display();
 		}
 	}
 };
 
 class DataMenu: public MenuItem {
 private:
+	int temperature;
 	int *temp;
 	Clock * clock;
 public:
 	DataMenu(std::string nam, Clock *c) {
 		name =  nam;
 		clock = c;
+		int a;
+		temperature=0;
+		temp=&temperature;
+
 	}
 
 	void ok() {
@@ -79,11 +85,10 @@ public:
 		lcd->clear();
 		lcd->print("temp    time");
 		lcd->setCursor(0, 1);
-		std::string str = toStr(*temp);
-		lcd->print(str);
-		for (unsigned int a = 0; a < (8 - str.length()); a++) {
-			lcd->write(' ');
-		}
+		int len = lcd->print(*temp);
+		lcd->setCursor(1,5);
+		lcd->print("C");
+		lcd->setCursor(1,8);
 		if (clock->hour < 10)
 			lcd->print("0");
 		lcd->print(clock->hour);

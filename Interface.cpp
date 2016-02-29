@@ -14,6 +14,10 @@ void Interface::handle(key k) {
 
 Interface::Interface(Clock *c, int rs, int en, int d4, int d5, int d6, int d7) {
 
+	butPressed[0]=0;
+	butPressed[1]=0;
+	butPressed[2]=0;
+	butPressed[3]=1;
 	lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
 	//room = r;
 

@@ -1,6 +1,7 @@
 #ifndef CLOCK_H
 #define CLOCK_H
 
+#include <cstdio>
 
 class Clock {
 public:

@@ -79,9 +79,9 @@ public:
   void autoscroll();
   void noAutoscroll();
   void print(std::string& s);
-  void print(char *s);
-  void print(const char *s);
-  void print(int);
+  int print(char *s);
+  int print(const char *s);
+  int print(int);
 
 
   void createChar(uint8_t, uint8_t[]);

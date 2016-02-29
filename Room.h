@@ -13,7 +13,7 @@ private:
 	int airVariable;
 	int tempVariable;
 	float temperature;
-	float heatloss;
+	float heatloss=0;
 	float airflow;
 	int temperate;
 	int humidity;
@@ -22,6 +22,7 @@ private:
 		computerLab=1,
 		auditorium=2,
 		office=3,
+		publicArea=4
 	};
 	roomType room;
 

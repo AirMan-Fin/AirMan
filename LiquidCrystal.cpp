@@ -321,7 +321,7 @@ void LiquidCrystal::print(std::string& s) {
 	}
 
 }
-void LiquidCrystal::print(char *s) {
+int LiquidCrystal::print(char *s) {
 	int len = 0;
 	for (int a = 0; a < 16; a++) {
 		if (s[a] == '\0')
@@ -332,13 +332,14 @@ void LiquidCrystal::print(char *s) {
 		write(s[a]);
 
 	}
+	return len;
 }
 
-void LiquidCrystal::print(int s) {
-	print(toStr(s).c_str());
+int LiquidCrystal::print(int s) {
+	return print(toStr(s).c_str());
 }
 
-void LiquidCrystal::print(const char *s) {
+int LiquidCrystal::print(const char *s) {
 	int len = 0;
 	for (int a = 0; a < 16; a++) {
 		if (s[a] == '\0')
@@ -349,4 +350,5 @@ void LiquidCrystal::print(const char *s) {
 		write(s[a]);
 
 	}
+	return len;
 }

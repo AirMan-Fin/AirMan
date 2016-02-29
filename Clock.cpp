@@ -19,6 +19,7 @@ int Clock::getTotalSec() {
 
 void Clock::tick() {
 	if (!modState) {
+		printf("dfgd");
 		sec++;
 		totalSec++;
 
