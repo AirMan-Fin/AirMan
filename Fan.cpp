@@ -5,25 +5,25 @@
  *      Author: Haggis
  */
 
-#include "board.h"
-#include "arduino.h"
 #include "Fan.h"
 
-Fan::Fan(int fanspeed = 0) {
+Fan::Fan(int fanspeed) {
 	speed = fanspeed;
+	node = new ModbusMaster (2); // Create modbus object that connects to slave id 2
+	node->begin(9600);
 }
 
-void Fan::update(int pulse){
-	Chip_GPIO_SetPinState(LPC_GPIO, port, pin, true);
+void Fan::update(int pulse) {
+	//Chip_GPIO_SetPinState(LPC_GPIO, port, pin, true);
 }
 
-bool Fan::setFrequency(ModbusMaster& node, uint16_t freq) {
+bool Fan::setFrequency(uint16_t freq) {
 	uint8_t result;
 	int ctr;
 	bool atSetpoint;
-	const int delay = 500;
+	const int delayy = 500;
 
-	node.writeSingleRegister(1, freq); // set motor frequency
+	node->writeSingleRegister(1, freq); // set motor frequency
 
 	//printf("Set freq = %d\n", freq/40); // for debugging
 
@@ -31,19 +31,26 @@ bool Fan::setFrequency(ModbusMaster& node, uint16_t freq) {
 	ctr = 0;
 	atSetpoint = false;
 	do {
-		Sleep(delay);
+		delay(delayy);
 		// read status word
-		result = node.readHoldingRegisters(3, 1);
+		result = node->readHoldingRegisters(3, 1);
 		// check if we are at setpoint
-		if (result == node.ku8MBSuccess) {
-			if(node.getResponseBuffer(0) & 0x0100) atSetpoint = true;
+		if (result == node->ku8MBSuccess) {
+			if (node->getResponseBuffer(0) & 0x0100)
+				atSetpoint = true;
 		}
 		ctr++;
-	} while(ctr < 20 && !atSetpoint);
+	} while (ctr < 20 && !atSetpoint);
 
 	//printf("Elapsed: %d\n", ctr * delay); // for debugging
 
 	return atSetpoint;
+}
+
+void Fan::setAirFlow(int flow){
+	float f= flow;
+	f/MAXAIRFLOW *5;
+	setFrequency((uint16_t)f);
 }
 
 
