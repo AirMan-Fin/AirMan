@@ -7,6 +7,7 @@
 
 #include "Room.h"
 #include "LiquidCrystal.h"
+#include <math.h>
 /*
  * area is in mm2
  * height is in mm
@@ -19,29 +20,45 @@
  * office=3
  * publicArea=4
  * temperature is the desired temperature
+ * humidity is the desired humidity
+ * indoorTemp is the temperature indoors
  */
 #define auditoriumPeopleDensity 6
 #define computerLabPeopleDensity 2
 #define classRoomPeopleDensity 3
 #define officePeopleDensity 10
 #define airDensity 1.205
-#define spesificHeat 1005
+#define specificHeat 1005
 #define peopleMultiplier 600
 #define machineryMultiplier 300
 #define windowMultiplier 170
 #define recoveryEfficiency 50
+#define wallmaterialConductance 0.317
+#define heatCapacity 1.01
+#define standardHeatingTime 1800 //sec
+int mollier[7][10]{
+	{0,1,2,3,4,5,6,7,8,9},
+	{5,7,8,9,10,11,13,14,15,17},
+	{10,12,14,16,18,20,22,24,26,28},
+	{15,18,21,24,27,30,33,35,38,41},
+	{20,24,28,32,36,40,44,48,52,56},
+	{25,30,35,40,45,50,55,60,65,70},
+	{30,36,42,48,54,60,66,72,78,84}
+};
 
-Room::Room(int floor = 40, float height1=2.5,float temp = 21.00, roomType type=classRoom){
+Room::Room(int floor, float height1, float temp, roomType type, int outer){
 	area= floor*1000;
 	height= height1*1000;
 	space= floor * height1;
 	room = type;
-	temperature =temp;
+	outerWalls= outer;
+	 temperature=temp;
+
 }
 /*
  * returns space in mm3
  */
-int Room::newCubicValues(int floor=0, int height1=0){
+int Room::setCubicValues(int floor, int height1){
 	if(floor==0){
 		floor=area;
 	}
@@ -54,23 +71,29 @@ int Room::newCubicValues(int floor=0, int height1=0){
 
 }
 
-/*
- * Returns the number of people
- */
-int Room::newPersonValues(int newGuy){
-	people =newGuy;
-	return people;
+void Room::setRoomtype(roomType r){
+
+	room= r;
 }
 /*
  * returns the desired temperature
  */
-float Room::newTemperatureValues(float desiredTemp=21.0,float insideTemp=21.0,float outsideTemp=15.0){
+float Room::setTemperatureValues(float desiredTemp){
 
-		temperature = desiredTemp+getVentHeatLoss(insideTemp,outsideTemp,0);
+		temperature = desiredTemp+heatloss;
 				return temperature;
-
 }
 
+
+void Room::setindoorTemp(float indtmp){
+	indoorTemp=indtmp;
+}
+void Room::setRecovery(bool reco){
+	recovery= reco;
+}
+void Room::setOuterWalls(int outw){
+	outerWalls=outw;
+}
 /*
  * http://www.engineeringtoolbox.com/design-ventilation-systems-d_121.html
  * If air is used for heating, the needed air flow rate may be expressed as  qh = Hh / (ρ cp (ts - tr))
@@ -90,8 +113,9 @@ float Room::newTemperatureValues(float desiredTemp=21.0,float insideTemp=21.0,fl
  *
  * Function returns m3/h
  */
-float Room::getAirflow(float indoorTemp=21.0, float airSupplyTemp=21.0,
-						float people=0,float windows=0, int machinery=0){
+float Room::getAirflow(float people,float windows, int machinery){
+
+	//float indoorTemp=21.0, airSupplyTemp=21.0;
 
 	float heatload=(10.7639104*area);//converting squaremeters to squarefeet
 
@@ -99,39 +123,89 @@ float Room::getAirflow(float indoorTemp=21.0, float airSupplyTemp=21.0,
 	case classRoom:
 		people = area/classRoomPeopleDensity;
 		heatload= (heatload+(people*peopleMultiplier)+(windows*windowMultiplier))*0.29307107;//adding the effect from windows people etc. and converting BTU to watt
-		airflow = (heatload/(airDensity*(spesificHeat*(indoorTemp - airSupplyTemp))))*3600;// put it in a airFlow function and turn it to m3/h
+		airflow = (heatload/(airDensity*(specificHeat*(indoorTemp - radiatorHeat))))*3600;// put it in a airFlow function and turn it to m3/h
 		return airflow;
 		break;
 	case computerLab:
 		people = area/computerLabPeopleDensity;
 		heatload= (heatload+(people*peopleMultiplier)+(machinery*machineryMultiplier))*0.29307107;
-		airflow = (heatload/(airDensity*(spesificHeat*(indoorTemp - airSupplyTemp))))*3600;// put it in a airFlow function and turn it to m3/h
+		airflow = (heatload/(airDensity*(specificHeat*(indoorTemp - radiatorHeat))))*3600;// put it in a airFlow function and turn it to m3/h
 		return airflow;
 		break;
 	case auditorium:
 		people = area/auditoriumPeopleDensity;
 		heatload= (heatload+(people*peopleMultiplier))*0.29307107;
-		airflow = (heatload/(airDensity*(spesificHeat*(indoorTemp - airSupplyTemp))))*3600;// put it in a airFlow function and turn it to m3/h
+		airflow = (heatload/(airDensity*(specificHeat*(indoorTemp - radiatorHeat))))*3600;// put it in a airFlow function and turn it to m3/h
 		return airflow;
 		break;
 	case office:
 		people = area/officePeopleDensity;
-		airflow = (heatload/(airDensity*(spesificHeat*(indoorTemp - airSupplyTemp))))*3600;
+		airflow = (heatload/(airDensity*(specificHeat*(indoorTemp - radiatorHeat))))*3600;
 		return airflow;
 		break;
 	}
+	return 0;
 }
+/*
+ * If 10.1 kJ is added to 1 kg air the temperature rise can be calculated as:
+ * tB - tA = (10.1 kJ/kg) / (1.01 kJ/kgCelcius)= 10Celcius
+ */
+float Room::getAirSupplyTemp(float sensorTemp){
+	radiatorHeat= (getAirflow()/3600)*(specificHeat/1000)*heatCapacity*(temperature-sensorTemp);
+	radiatorHeat-= (outerWallHeatLoss(outerWalls)+getVentHeatLoss(recovery))/1000;//radiatorHeat is in kilowatts
+	int ok=0;
+	int b = standardHeatingTime;
+	do{
+	int a = radiatorHeat/((getAirflow()/3600)*b);
+	ok++;
+	b+=300;
+	if(a < heaterMAX){
+		ok=25;
+		radiatorHeat=a;
+	}
+	}while (ok<22);
+	if(ok==22){
+		err=false;
+	}
+}
+/*
+ * http://www.worldweatheronline.com/helsinki-weather-averages/southern-finland/fi.aspx
+ */
+float Room::getTempDiff(float inside, int month){
+	int outside=0;
+		outside=monthTempHelsinki[month];
+		if(outside < 0){
+				differentTemp=inside+outside;
+			}
+			differentTemp=inside-outside;
 
-float Room::getVentHeatLoss(float insideTemp=21.0, float outsideTemp=15.0,bool recovery=0){
+	return differentTemp;
+}
+/*
+ * gets how many watts/hour ventilation loses heat
+ */
+float Room::getVentHeatLoss(bool recovery){
 
-	heatloss=spesificHeat*airDensity*(getAirflow()*(insideTemp-outsideTemp));
+	heatloss=specificHeat*airDensity*(getAirflow()*(differentTemp));
 	if(recovery){
 		heatloss=(1 - recoveryEfficiency/100)*heatloss;
 	}
 	return heatloss;
 }
+/*
+ * returns how many watts/hour walls lose heat
+ */
 
-void Room::update(){
-newTemperatureValues();
-getAirflow(temperature);
+float Room::outerWallHeatLoss(int outw){
+
+	outerWalls=outw;
+	wallsize= sqrt(area)*height;
+	return outw*(wallmaterialConductance*wallsize*differentTemp);
+
+}
+
+bool Room::update(float Tmp, int mon){
+getTempDiff(Tmp,mon);
+getAirSupplyTemp(Tmp);
+return err;
 }

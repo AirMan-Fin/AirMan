@@ -11,35 +11,53 @@ private:
 
 	int people;
 	int airVariable;
-	int tempVariable;
-	float temperature;
-	float heatloss=0;
+	int indoorTemp;//sensor
+	float temperature;//desired
+	float heatloss;
 	float airflow;
 	int temperate;
 	int humidity;
+	int differentTemp;
+	int wallsize=0;
+	float radiatorHeat=0;
+	int outerWalls=0;
+	bool recovery=0;
+	int heaterMAX=30;//30Celcius
+	bool err=true;
+	/*
+	 * http://www.engineeringtoolbox.com/psychrometric-chart-mollier-d_27.html
+	 * temperature*humidity
+	 */
+
+	float monthTempHelsinki[12]{-2, -3, 3, 10, 15, 19, 22, 21, 16, 9, 4 , 1};
 	enum roomType{
 		classRoom=0,
 		computerLab=1,
 		auditorium=2,
 		office=3,
-		publicArea=4
 	};
 	roomType room;
 
 	void calculate();// not used
 public:
-	Room(int,float,float,roomType);
-	void update();//not used
+	Room(int floor = 40, float height1=2.5, float temp = 21.00, roomType type=classRoom, int outer=0);
+	bool update(float, int);
 
-	float getAirflow(float,float,float,float,int);
-	float getVentHeatLoss(float,float,bool);
+	float getAirflow(float people=0,float windows=0, int machinery=0);
+	float getVentHeatLoss(bool recovery=0);
 
-	int newCubicValues(int, int);
-	int newPersonValues(int);
-	int newFurnitureValues(int);
-	float newTemperatureValues(float,float,float);
-	void save();//not used
-	void setHeat();
+	int setCubicValues(int floor=0, int height1=0);
+	int setPersonValues(int);
+	int setFurnitureValues(int);
+	float setTemperatureValues(float,float,float);
+	float outerWallHeatLoss(int outw=0);
+	float getTempDiff(float, int);
+	float getAirSupplyTemp(float);
+	void setRoomtype(roomType);
+	float setTemperatureValues(float);
+	void setindoorTemp(float);
+	void setRecovery(bool);
+	void setOuterWalls(int);
 };
 
 #endif
