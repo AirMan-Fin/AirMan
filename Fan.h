@@ -7,10 +7,10 @@ private:
 	bool autoMode;
 	int speed;
 public:
-	Fan();
+	Fan(int);
 
 	void update(int);
-	void setSpeed();
+	bool setFrequency(ModbusMaster& node, uint16_t);
 
 };
 
