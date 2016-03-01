@@ -1,6 +1,13 @@
 #ifndef FAN_H
 #define FAN_H
 
+/*
+* Fan.h
+*
+*  Created on: 1.3.2016
+*      Author: Haggis
+*/
+
 #include "arduino.h"
 #include "ModbusMaster.h"
 
