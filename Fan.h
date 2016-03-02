@@ -14,7 +14,7 @@
 /*
  * max cubicmeter per second fan can provide -> 500 hz frequency
  */
-#define MAXAIRFLOW 100
+#define MAXAIRFLOW 10
 
 class Fan {
 private:
