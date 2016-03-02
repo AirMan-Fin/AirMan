@@ -41,7 +41,7 @@ private:
 	void calculate();// not used
 public:
 	Room(int floor = 40, float height1=2.5, float temp = 21.00, roomType type=classRoom, int outer=0);
-	bool update(float, int);
+	bool update(float Tmp=21.0, int mon=1);
 
 	float getAirflow(float people=0,float windows=0, int machinery=0);
 	float getVentHeatLoss(bool recovery=0);
