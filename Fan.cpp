@@ -49,7 +49,7 @@ bool Fan::setFrequency(uint16_t freq) {
 
 void Fan::setAirFlow(int flow){
 	float f= flow;
-	f/MAXAIRFLOW *5;
+	f = MAXAIRFLOW *5;
 	setFrequency((uint16_t)f);
 }
 
