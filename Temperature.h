@@ -7,6 +7,7 @@ class Temperature {
 private:
 	AnalogPort *port;
 	float value;
+	float lastResults[3];
 public:
 	/*
 	 * creates new analogport object
@@ -17,7 +18,7 @@ public:
 	 * returns port value
 	 * param: if true, doesn't read port, just return value
 	 */
-	float getValue(bool read=0);
+	bool getValue(float *);
 
 };
 

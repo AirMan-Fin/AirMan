@@ -24,8 +24,11 @@
 #include "Fan.h"
 #include "Heater.h"
 #include "Temperature.h"
+#include "Pressure.h"
+#include "Humidity.h"
 #include "InterFace.h"
 #include "Clock.h"
+#include "Eeprom.h"
 
 // TODO: insert other definitions and declarations here
 #define TICKRATE 1000
@@ -36,15 +39,23 @@
 
 unsigned long long milliss;
 bool flTick = 0;
+bool clockTick = 0;
+bool msTick = 0;
 bool flInterfaceTick = 0;
 
 extern "C" {
 void SysTick_Handler() {
 	milliss++;
-	if (milliss % 1000 == 0) {
+	if (milliss % 10000 == 0) { // every 10 sec
 		flTick = 1;
 	}
-	if (milliss % 10 == 0) {
+	if (milliss % 1000 == 0) { // every sec
+		clockTick = 1;
+	}
+	if (milliss % 1000 == 0) { // every 100 millisec
+		msTick = 1;
+	}
+	if (milliss % 10 == 0) { // every 10 millisec
 		flInterfaceTick = 1;
 	}
 }
@@ -64,32 +75,74 @@ int main(void) {
 	enRit();
 	// TODO: insert code here
 	//Fan fan;
+
+	Eeprom eeprom(1);
+
 	Heater heater;
 
-	Room room(15000, 2700);
+	Room room(40, 3);
 	Clock clock;
-	float roomTemperature=20;
+	float roomTemperature = 20;
+	int error = 0;
+	bool  errors[] = { 0, 0, 0, 0, 0, 0 };
 
 	Temperature temp(0);
+	//Pressure pres(0);
+	Humidity humi(0);
 
-	Interface interface(&room, &clock, &roomTemperature, 8, 9, 10, 11, 12, 13);
+	Interface interface(&room, &clock, &roomTemperature, &error, errors, 8, 9, 10, 11,
+			12, 13);
 	interface.lcdBegin();
 	interface.initButtons(but1pin, but2pin, but3pin, but4pin);
 
 	while (1) {
 
-		if (flInterfaceTick) {
+		if (flInterfaceTick) { // once every 10 ms
 			flInterfaceTick = 0;
 			interface.update();
 		}
 
-		if (flTick) {
-			roomTemperature = temp.getValue();
-			//printf("%d\n",data);
-			flTick = 0;
-			clock.tick();
+		if (msTick) {
+			msTick = 0;
 			interface.tick();
-			//room.update(temp.read(), clock->month);
+
+		}
+
+		if (clockTick) { // once every second
+			clockTick = 0;
+			clock.tick();
+		}
+
+		if (flTick) { // once per 10 second
+			flTick = 0;
+
+			float tempData;
+			if (!temp.getValue(&tempData)) {
+				error = 1;
+				errors[0] = 0;
+			} else {
+				error = 0;
+				errors[0] = 0;
+			}
+			float humidityData;
+			if (!humi.getValue(&humidityData)) {
+				error = 2;
+				errors[1] = 1;
+			}else {
+				error = 0;
+				errors[1] = 0;
+			}
+			float pressureData;
+			if (0) { // read pressure sensor
+				error = 3;
+				errors[2] = 1;
+			}else {
+				error = 0;
+				errors[2] = 0;
+			}
+			//printf("%d\n",data);
+
+			//room.update(tempData, clock->month, humidityData);
 			//heater.update(room.getHeatflow());
 			//fan.update(room.getAirflow());
 		}

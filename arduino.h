@@ -6,6 +6,10 @@
 #include <string>
 #include <sstream>
 
+#include "board.h"
+
+#include <cstdio>
+
 /* Definitions needed by Arduino LiquidCrystal library
  *
  * This file must be included after chip.h and/or board.h if either of them is also included

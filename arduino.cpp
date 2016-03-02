@@ -5,13 +5,8 @@
  *      Author: krl
  */
 
-/* compatibility layer */
-#include "board.h"
-#include "arduino.h"
-#include <cstdio>
-//#include <string>
-//#include <sstream>
 
+#include "arduino.h"
 bool flRit;
 
 extern "C" {

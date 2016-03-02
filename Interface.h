@@ -8,6 +8,15 @@
 #include "MenuItem.h"
 #include "EndMenu.h"
 #include "Clock.h"
+#include <string>
+
+const char *guide[]={//rows to guide
+		"Quick guide:",
+		"don't lick",    ////
+		"don't eat",
+		"and so on..."
+};
+const int guideLength=4;
 
 class MainMenu: public MenuItem {
 private:
@@ -50,27 +59,56 @@ public:
 class DataMenu: public MenuItem {
 private:
 	float *temp;
+	int * err;
 	Clock * clock;
+	int value;bool modState;
 public:
-	DataMenu(std::string nam, Clock *c, float *t) {
+	DataMenu(std::string nam, Clock *c, float *t, int * er) {
 		name = nam;
 		clock = c;
 		temp = t;
 		timer = 0;
+		value = 0;
+		err = er;
+		modState = 0;
 
 	}
 
 	void ok() {
-
+		modState = !modState;
+		if (modState) {
+			//room->setBoost(value);
+		}
 	}
 	void up() {
+		if (!modState) {
+			if (timer > 0) {
+				//room->setTemperatureValues(room->getTemperatureValues() + 0.5);
+			}
+			timer = 3;
+		}
 
+		else {
+			if (value < 6)
+				value++;
+		}
 	}
 	void down() {
-
+		if (!modState) {
+			if (timer > 0) {
+				//room->setTemperatureValues(room->getTemperatureValues() - 0.5);
+			}
+			timer = 3;
+		} else {
+			if (value > 0)
+				value--;
+		}
 	}
 	void back() {
-		MenuItem::back();
+		if (modState) {
+			modState = !modState;
+		} else
+			MenuItem::back();
 	}
 
 	/*
@@ -79,25 +117,48 @@ public:
 	 * 23.2    15.42
 	 */
 	void display() {
-		lcd->clear();
-		lcd->print("temp    time");
-		lcd->setCursor(0, 1);
-		int len = lcd->print(*temp);
-		lcd->setCursor(5, 1);
-		lcd->print("C");
-		lcd->setCursor(8, 1);
-		if (clock->hour < 10)
-			lcd->print("0");
-		lcd->print(clock->hour);
-		lcd->print(".");
-		if (clock->min < 10)
-			lcd->print("0");
-		lcd->print(clock->min);
+		if (modState) {
+			lcd->clear();
+			lcd->print("Boost mode:");
+			lcd->setCursor(0, 1);
+			lcd->print("hours: ");
+			lcd->print(value);
+		} else {
+			lcd->clear();
+			lcd->print("temp    time  ");
+			if (*(err) == 0)
+				lcd->print("ok");
+			else
+				lcd->print("ER");
+			lcd->setCursor(0, 1);
+			if (timer == 0)
+				int len = lcd->print(*temp);
+			else {
+				lcd->print("-");
+				//lcd->print(room->getTemperatureValues());
+			}
+			lcd->setCursor(5, 1);
+			lcd->print("C");
+			lcd->setCursor(8, 1);
+			if (clock->hour < 10)
+				lcd->print("0");
+			lcd->print(clock->hour);
+			lcd->print(".");
+			if (clock->min < 10)
+				lcd->print("0");
+			lcd->print(clock->min);
 
+			if(*(err)!=0){
+				lcd->setCursor(15,1);
+				lcd->print(*(err));
+			}
+		}
 	}
 
 	void tick() {
 		display();
+		if (timer > 0)
+			timer--;
 	}
 
 };
@@ -250,7 +311,7 @@ public:
 
 };
 
-const roomType helpBlock[] = {classRoom, computerLab, auditorium, office
+const roomType helpBlock[] = { classRoom, computerLab, auditorium, office
 
 };
 class RoomTypeMenu: public EndMenu {
@@ -268,7 +329,7 @@ public:
 	void ok() {
 		if (modState) {
 			value = temp;
-			room->setRoomtype(helpBlock[(int)value]);
+			room->setRoomtype(helpBlock[(int) value]);
 		} else {
 
 		}
@@ -425,16 +486,35 @@ public:
 	}
 };
 
-class SettingsBrigthnessMenu: public EndMenu {
-
+class SettingsErrorMenu: public EndMenu {
+private:
+	bool * errors;
 public:
-	SettingsBrigthnessMenu(std::string nam, int t, int min2 = 0, int max2 = 100,
-			int inter = 1) {
-		value = temp = t;
-		min = min2;
-		max = max2;
-		name = nam;
-		intervall = inter;
+	SettingsErrorMenu(std::string nam, bool * er) {
+		name=nam;
+		errors=er;
+	}
+
+	void display(){
+		func();
+		if(errors[0])
+			lcd->print(1);
+		lcd->setCursor(3,1);
+		if(errors[1])
+			lcd->print(2);
+		lcd->setCursor(5,1);
+		if(errors[2])
+			lcd->print(3);
+		lcd->setCursor(7,1);
+		if(errors[3])
+			lcd->print(4);
+		lcd->setCursor(9,1);
+		if(errors[4])
+			lcd->print(5);
+		lcd->setCursor(11,1);
+		if(errors[5])
+			lcd->print(6);
+		lcd->setCursor(13,1);
 	}
 
 };
@@ -565,10 +645,36 @@ public:
 	}
 };
 
+class SettingsGuideMenu: public EndMenu{
+public:
+	SettingsGuideMenu(std::string nam){
+		name=nam;
+		value=0;
+
+	}
+	void up(){
+		if(value<guideLength-1){
+			value++;
+
+
+		}
+	}
+	void down(){
+		if(value>0){
+			value--;
+		}
+	}
+	void diplay(){
+		lcd->clear();
+		lcd->print(guide[(int)value]);
+		lcd->setCursor(0,1);
+		lcd->print(guide[(int)value+1]);
+	}
+};
+
 class Interface {
 private:
-	LiquidCrystal *lcd;
-	bool butPressed[4];
+	LiquidCrystal *lcd;bool butPressed[4];
 	Room *room;
 	Button *button[4];
 
@@ -580,7 +686,7 @@ private:
 	DataMenu *dataMenu;
 
 	SettingsClockMenu *settingsClockMenu;
-	SettingsBrigthnessMenu *settingsBrightnessMenu;
+	SettingsErrorMenu *settingsErrorMenu;
 
 	RoomSpaceMenu *roomSpaceMenu; //area, height
 	RoomTypeMenu *roomTypeMenu; // room mtype
@@ -598,7 +704,7 @@ public:
 	 * creates required menu instances
 	 * creates lcd and room instances
 	 */
-	Interface(Room * r, Clock * c, float * temp, int rs = 8, int en = 9,
+	Interface(Room * r, Clock * c, float * temp, int * er, bool * erro, int rs = 8, int en = 9,
 			int d4 = 10, int d5 = 11, int d6 = 12, int d7 = 13);
 	~Interface();
 

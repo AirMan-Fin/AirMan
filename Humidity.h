@@ -10,7 +10,9 @@ private:
 
 	I2C* i2c;
 	uint8_t Itemp[3];
-	int Otemp[3];
+	uint8_t Otemp[3];
+
+	int value;
 
 public:
 	/*
@@ -22,7 +24,7 @@ public:
 	* returns pressure value
 	* param: if true, doesn't read port, just return value
 	*/
-	float getValue(bool read = 0);
+	bool getValue(float *);
 
 };
 
