@@ -8,6 +8,7 @@
 #include "Room.h"
 #include "LiquidCrystal.h"
 #include <math.h>
+#include <cstdio>
 /*
  * area is in mm2
  * height is in mm
@@ -22,6 +23,8 @@
  * temperature is the desired temperature
  * humidity is the desired humidity
  * indoorTemp is the temperature indoors
+ * by default floor = 40m2, height1=2.5m, temp = 21.00C, roomType=classRoom, outerwalls=0
+ * Month= january, people=0, windows=0, machinery=0 and no recovery unit
  */
 #define auditoriumPeopleDensity 6
 #define computerLabPeopleDensity 2
@@ -124,6 +127,7 @@ float Room::getAirflow(float people,float windows, int machinery){
 		people = area/classRoomPeopleDensity;
 		heatload= (heatload+(people*peopleMultiplier)+(windows*windowMultiplier))*0.29307107;//adding the effect from windows people etc. and converting BTU to watt
 		airflow = (heatload/(airDensity*(specificHeat*(indoorTemp - radiatorHeat))))*3600;// put it in a airFlow function and turn it to m3/h
+		printf("\n airflow= %5.2f heatload= %5.2f",airflow, heatload);
 		return airflow;
 		break;
 	case computerLab:
@@ -157,6 +161,7 @@ float Room::getAirSupplyTemp(float sensorTemp){
 	int b = standardHeatingTime;
 	do{
 	int a = radiatorHeat/((getAirflow()/3600)*b);
+	printf("\n radiatorHeat = %5.2f", radiatorHeat);
 	ok++;
 	b+=300;
 	if(a < heaterMAX){
@@ -167,6 +172,7 @@ float Room::getAirSupplyTemp(float sensorTemp){
 	if(ok==22){
 		err=false;
 	}
+	return radiatorHeat;
 }
 /*
  * http://www.worldweatheronline.com/helsinki-weather-averages/southern-finland/fi.aspx
