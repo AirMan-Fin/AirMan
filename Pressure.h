@@ -3,11 +3,15 @@
 
 
 #include "arduino.h"
+#include "I2C.h"
 
 class Pressure {
 private:
-	AnalogPort *port;
-	float value;
+	
+	I2C* i2c;
+	uint8_t Itemp[3];
+	int Otemp[3];
+	
 public:
 	/*
 	 * creates new analogport object
