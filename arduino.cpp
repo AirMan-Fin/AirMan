@@ -41,7 +41,7 @@ bool digitalRead(int pin) {
 }
 
 void pinMode(int pin, int mode) {
-	if (mode == OUTPUT) {
+	if (mode == 1) {
 		Chip_GPIO_SetPinDIROutput(LPC_GPIO, dPort[pin], dPin[pin]);
 	} else {
 		Chip_IOCON_PinMuxSet(LPC_IOCON, dPort[pin], dPin[pin],
@@ -101,7 +101,7 @@ void delayMicroseconds(int us) {
 
 Button::Button(int pp) {
 	pin = pp;
-	pinMode(pp, INPUT);
+	pinMode(pp, 0);
 }
 
 bool Button::read() {
@@ -132,6 +132,8 @@ void ADC0A_IRQHandler(void) {
 
 } // extern "C"
 
+CHIP_SWM_PIN_FIXED analogName[]= {SWM_FIXED_ADC0_0,SWM_FIXED_ADC0_1,SWM_FIXED_ADC0_2,SWM_FIXED_ADC0_3,SWM_FIXED_ADC0_4,SWM_FIXED_ADC0_5,SWM_FIXED_ADC0_6,SWM_FIXED_ADC0_7};
+
 AnalogPort::AnalogPort(int pin2) {
 	pin = pin2;
 
@@ -144,8 +146,8 @@ AnalogPort::AnalogPort(int pin2) {
 	/* For ADC0, sequencer A will be used without threshold events.
 	 It will be triggered manually  */
 	Chip_ADC_SetupSequencer(LPC_ADC0, ADC_SEQA_IDX,
-			(ADC_SEQ_CTRL_CHANSEL(0) | ADC_SEQ_CTRL_CHANSEL(3)
-					| ADC_SEQ_CTRL_MODE_EOS));   ////////dfggdfgsdfglsjdfgjkhsg
+			(ADC_SEQ_CTRL_CHANSEL(pin2)
+					| ADC_SEQ_CTRL_MODE_EOS));
 
 	/* For ADC0, select analog input pint for channel 0 on ADC0 */
 	Chip_ADC_SetADC0Input(LPC_ADC0, 0);
@@ -153,9 +155,8 @@ AnalogPort::AnalogPort(int pin2) {
 	/* Use higher voltage trim for both ADC */
 	Chip_ADC_SetTrim(LPC_ADC0, ADC_TRIM_VRANGE_HIGHV);
 
-	/* Assign ADC0_0 to PIO1_8 via SWM (fixed pin) and ADC0_3 to PIO0_5 */ ////////////////////////////////////////dfgdfgsdfgsdf
-	Chip_SWM_EnableFixedPin (SWM_FIXED_ADC0_0);
-	Chip_SWM_EnableFixedPin (SWM_FIXED_ADC0_3);
+	/* Assign ADC0_0 to PIO1_8 via SWM (fixed pin) and ADC0_3 to PIO0_5 */
+	Chip_SWM_EnableFixedPin (analogName[pin2]);
 
 	/* Need to do a calibration after initialization and trim */
 	Chip_ADC_StartCalibration(LPC_ADC0);
@@ -184,7 +185,7 @@ int AnalogPort::read() {
 		__WFI();
 	adcdone = false;
 
-	uint32_t a0 = Chip_ADC_GetDataReg(LPC_ADC0, 0);
+	uint32_t a0 = Chip_ADC_GetDataReg(LPC_ADC0, pin);
 	int d0 = ADC_DR_RESULT(a0);
 	return d0;
 }

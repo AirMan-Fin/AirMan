@@ -70,12 +70,12 @@ void LiquidCrystal::init(uint8_t fourbitmode, uint8_t rs, uint8_t rw, uint8_t en
   _data_pins[6] = d6;
   _data_pins[7] = d7;
 
-  pinMode(_rs_pin, OUTPUT);
+  pinMode(_rs_pin, 1);
   // we can save 1 pin by not using RW. Indicate by passing 255 instead of pin#
   if (_rw_pin != 255) {
-    pinMode(_rw_pin, OUTPUT);
+    pinMode(_rw_pin, 1);
   }
-  pinMode(_enable_pin, OUTPUT);
+  pinMode(_enable_pin, 1);
 
   if (fourbitmode)
     _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
@@ -296,7 +296,7 @@ void LiquidCrystal::pulseEnable(void) {
 
 void LiquidCrystal::write4bits(uint8_t value) {
   for (int i = 0; i < 4; i++) {
-    pinMode(_data_pins[i], OUTPUT);
+    pinMode(_data_pins[i], 1);
     digitalWrite(_data_pins[i], (value >> i) & 0x01);
   }
 
@@ -305,7 +305,7 @@ void LiquidCrystal::write4bits(uint8_t value) {
 
 void LiquidCrystal::write8bits(uint8_t value) {
   for (int i = 0; i < 8; i++) {
-    pinMode(_data_pins[i], OUTPUT);
+    pinMode(_data_pins[i], 1);
     digitalWrite(_data_pins[i], (value >> i) & 0x01);
   }
 

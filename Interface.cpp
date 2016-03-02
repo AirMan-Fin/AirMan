@@ -12,7 +12,9 @@ void Interface::handle(key k) {
 	menuHandler->display();
 }
 
-Interface::Interface(Clock *c, int rs, int en, int d4, int d5, int d6, int d7) {
+Interface::Interface(Room * r, Clock *c, float * temp, int rs, int en, int d4, int d5, int d6, int d7) {
+
+	room = r;
 
 	butPressed[0]=0;
 	butPressed[1]=0;
@@ -29,7 +31,7 @@ Interface::Interface(Clock *c, int rs, int en, int d4, int d5, int d6, int d7) {
 	main = new MainMenu("Main Menu");
 	settingsMenu = new SettingsMenu("Settings");
 	roomMenu = new RoomMenu("Room Setting");
-	dataMenu = new DataMenu("Data", c);
+	dataMenu = new DataMenu("Data", c, temp);
 
 	settingsClockMenu = new SettingsClockMenu("Clock", c);
 	settingsBrightnessMenu = new SettingsBrigthnessMenu("Brighthness", 2, 1, 2);
@@ -39,31 +41,34 @@ Interface::Interface(Clock *c, int rs, int en, int d4, int d5, int d6, int d7) {
 	roomTempMenu = new RoomTempMenu("t.Temp", 20, 16, 28, 0.5);
 	roomHeatRecoverMenu = new RoomHeatRecoverMenu("Heat Recover", 0, 0, 1);
 	roomWindowsMenu = new RoomWindowsMenu("Outer walls", 1, 0, 4);
+	roomSetupMenu = new RoomSetupMenu("Setup", roomSpaceMenu, roomTypeMenu, roomTempMenu, roomWindowsMenu, roomHeatRecoverMenu);
 
 	/*
 	 * initializing all menus
 	 */
-	main->init(menuHandler->getpCurrent(), menuHandler->getpVector(), lcd);
+	main->init(menuHandler->getpCurrent(), menuHandler->getpVector(), lcd, room);
 	settingsMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
-			lcd);
-	roomMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(), lcd);
-	dataMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(), lcd);
+			lcd, room);
+	roomMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(), lcd, room);
+	dataMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(), lcd, room);
 
 	roomSpaceMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
-			lcd);
+			lcd, room);
 	roomTypeMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
-			lcd);
+			lcd, room);
 	roomHeatRecoverMenu->init(menuHandler->getpCurrent(),
-			menuHandler->getpVector(), lcd);
+			menuHandler->getpVector(), lcd, room);
 	roomWindowsMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
-			lcd);
+			lcd, room);
 	roomTempMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
-			lcd);
+			lcd, room);
+	roomSetupMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
+				lcd, room);
 
 	settingsClockMenu->init(menuHandler->getpCurrent(),
-			menuHandler->getpVector(), lcd);
+			menuHandler->getpVector(), lcd, room);
 	settingsBrightnessMenu->init(menuHandler->getpCurrent(),
-			menuHandler->getpVector(), lcd);
+			menuHandler->getpVector(), lcd, room);
 
 	/*
 	 * add starting menu
@@ -80,6 +85,7 @@ Interface::Interface(Clock *c, int rs, int en, int d4, int d5, int d6, int d7) {
 	settingsMenu->addMenuitem(settingsClockMenu);
 	settingsMenu->addMenuitem(settingsBrightnessMenu);
 
+	roomMenu->addMenuitem(roomSetupMenu);
 	roomMenu->addMenuitem(roomSpaceMenu);
 	roomMenu->addMenuitem(roomTempMenu);
 	roomMenu->addMenuitem(roomTypeMenu);

@@ -2,6 +2,7 @@
 
 Clock::Clock() {
 	modState=0;
+	setTime();
 }
 
 void Clock::setTime(int sec2, int min2, int hour2, int day2, int month2,
@@ -19,7 +20,6 @@ int Clock::getTotalSec() {
 
 void Clock::tick() {
 	if (!modState) {
-		printf("dfgd");
 		sec++;
 		totalSec++;
 

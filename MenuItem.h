@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include "Room.h"
 #include "LiquidCrystal.h"
 
 class MenuItem {
@@ -15,10 +16,12 @@ public:
 	std::vector<MenuItem *> mm;
 
 	unsigned int place;
+	int timer;
 
 	LiquidCrystal *lcd;
+	Room *room;
 
-	void init(MenuItem**, std::vector<MenuItem*> *, LiquidCrystal *l);
+	void init(MenuItem**, std::vector<MenuItem*> *, LiquidCrystal *l, Room * r);
 	MenuItem();
 
 	/*
@@ -57,7 +60,7 @@ public:
 	void func();
 
 	/*
-	 * default tick method, empty
+	 * default tick method, after 30 seconds, returns back
 	 */
 	virtual void tick();
 

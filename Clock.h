@@ -20,8 +20,8 @@ public:
 	/*
 	 * sets new time
 	 */
-	void setTime(int sec2 = 0, int min2 = 0, int hour2 = 12, int day2 = 19,
-			int month2 = 2, int year2 = 2016) ;
+	void setTime(int sec2 = 0, int min2 = 30, int hour2 = 13, int day2 = 2,
+			int month2 = 3, int year2 = 2016) ;
 
 	/*
 	 * returns totalSec

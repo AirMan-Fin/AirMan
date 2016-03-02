@@ -23,6 +23,7 @@
 #include "arduino.h"
 #include "Fan.h"
 #include "Heater.h"
+#include "Temperature.h"
 #include "InterFace.h"
 #include "Clock.h"
 
@@ -33,17 +34,17 @@
 #define but3pin 2
 #define but4pin 3
 
-unsigned long long millis;
+unsigned long long milliss;
 bool flTick = 0;
 bool flInterfaceTick = 0;
 
 extern "C" {
 void SysTick_Handler() {
-	millis++;
-	if (millis % 1000 == 0) {
+	milliss++;
+	if (milliss % 1000 == 0) {
 		flTick = 1;
 	}
-	if (millis % 10 == 0) {
+	if (milliss % 10 == 0) {
 		flInterfaceTick = 1;
 	}
 }
@@ -65,10 +66,13 @@ int main(void) {
 	//Fan fan;
 	Heater heater;
 
-	//Room room(15000, 2700);
+	Room room(15000, 2700);
 	Clock clock;
+	float roomTemperature=20;
 
-	Interface interface(&clock,8,9,10,11,12,13);
+	Temperature temp(0);
+
+	Interface interface(&room, &clock, &roomTemperature, 8, 9, 10, 11, 12, 13);
 	interface.lcdBegin();
 	interface.initButtons(but1pin, but2pin, but3pin, but4pin);
 
@@ -80,10 +84,12 @@ int main(void) {
 		}
 
 		if (flTick) {
+			roomTemperature = temp.getValue();
+			//printf("%d\n",data);
 			flTick = 0;
 			clock.tick();
 			interface.tick();
-			//room.update();
+			//room.update(temp.read(), clock->month);
 			//heater.update(room.getHeatflow());
 			//fan.update(room.getAirflow());
 		}
