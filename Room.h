@@ -7,11 +7,8 @@
 /*
  * !!!!!!!!!!Things to do!!!!!!!!!!!!
  *
- * >min and max for airflow
+ * >manageAirSupply() where you fine tune you airflow and heating when time passes
  *
- * >getAirSupply() where you fine tune you airflow and heating when time passes
- *
- * >selvitä mikä fuckkaa targetTemperaturen ja muut targetit!!
  */
 enum roomType {
 	classRoom = 0, computerLab = 1, auditorium = 2, office = 3,
@@ -19,36 +16,41 @@ enum roomType {
 
 class Room {
 private:
-	int area;
-	int height;
-	int space;
+	float area=40;
+	float height=3;
+	float space;
+	float MAXairflow=10,MINairflow=0;
+	float userHeaterMIN=15;
 
-	int PeopleDensity=0;
-	int MachineryDensity=0;
-	int Windows;
+	float PeopleDensity=0;
+	float MachineryDensity=0;
+	float Windows;
+	float time;//standard heating time 1800 increased if airflow exeeds maximum value
 
 
 	float sensorTemp=0; //sensor
 	float humidity=0;//sensor
 	float temperature=21.0; //desired
 
-	float heatloss; //energy balance for room
-	int boost = 0;//for how many hours boost
+	float heatTotal=0; //energy balance for room
+	float boost = 0;//for how many hours boost
 
 
-	float targetAirTemperature;
+
+	float targetAirTemperature=0;
 	float targetTime;
-	float targetAirflow;
+	float targetAirflow=0;
 
 	float airflow; //airflow...
 	float differentTemp; //difference between indoor - outdoor
 
-	int wallsize = 0;
-	int outerWalls = 0;
+	float wallsize = 0;
+	float outerWalls = 0;
 	bool recovery = 0;
-	int heaterMAX = 30; //30Celcius
-	int heaterMIN = 10; //30Celcius
+	float heaterMAX = 30; //30Celcius
+	float heaterMIN = 10; //30Celcius
 	bool err = true;
+
 	/*
 	 * http://www.engineeringtoolbox.com/psychrometric-chart-mollier-d_27.html
 	 * temperature*humidity
@@ -71,17 +73,21 @@ public:
 
 	bool update(float Tmp = 21.0, int mon = 1);
 
-	int setCubicValues(int floor = 0, int height1 = 0);// sets cubics
+	int setCubicValues(float floor = 0, float height1 = 0);// sets cubics
 	void setRoomtype(roomType);//sets the rooom type classRoom etc.
 	void setTemperatureValues(float);//sets the desired temperature
 	void setRecovery(bool);//is there a recovery unit
-	void setOuterWalls(int);//sets the amount of outer walls
+	void setOuterWalls(float);//sets the amount of outer walls
 	void setSensorTemp(float);//sets the temperature sensor value to "temperature"
 	void setHumidity(float);//sets humidity sensor value to "humidity"
-	void setBoost(int);
+	void setBoost(float);
+	void setMAXairflow(float);
+	void setMINairflow(float);
 
+	void powerSave();
 	bool  getTargetEnergy();//calculates energy needed to heat room
 
+	void trimmer();
 	float getSpaceValue();//returns space
 	float getHeigthValue();//returns height
 	roomType getRoomtype();//returns roomType

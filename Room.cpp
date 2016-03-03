@@ -6,7 +6,6 @@
  */
 
 #include "Room.h"
-#include "LiquidCrystal.h"
 #include <math.h>
 #include <cstdio>
 /*
@@ -41,11 +40,13 @@
 #define auditoriumBoost 1.5
 #define officeBoost 1.1
 
+#define trimmerMultiplier 0.15
+
 #define airDensity 1.205 //kg/m^3
 #define specificHeat 1.005//kJ(kg/K)
-#define peopleMultiplier 175//watts
-#define machineryMultiplier 88//watts
-#define windowMultiplier 49//watts
+#define peopleMultiplier 120//watts according to http://www.engineeringtoolbox.com/metabolic-heat-persons-d_706.html
+#define machineryMultiplier 0//watts only servers etc. affects http://www.engineeringtoolbox.com/heat-gain-equipment-d_1668.html
+#define windowMultiplier //watts couldn't figure out how much windows actually produce
 #define recoveryEfficiency 0.5 // precent how much recovery unit saves energy
 #define wallmaterialConductance 0.317//how much material takes away energy
 #define standardHeatingTime 1800 //sec to reach desire temperature
@@ -66,11 +67,12 @@ Room::Room(int floor, float height1, float temp, roomType type, int outer, bool 
 		setTemperatureValues(temp);//sets the desired temperature
 		setRecovery(reco);//is there a recovery unit
 		setOuterWalls(outer);//sets the amount of outer walls
+		targetTime=standardHeatingTime;
 }
 /*
  * returns space in mm3
  */
-int Room::setCubicValues(int floor, int height1) {
+int Room::setCubicValues(float floor, float height1) {
 	if (floor == 0) {
 		floor = area;
 	}
@@ -79,10 +81,25 @@ int Room::setCubicValues(int floor, int height1) {
 	}
 	height = height1;
 	area = floor;
-	return height * area;
+	space= area*height;
+	return space;
 
 }
+void Room::trimmer(){//fine tune function
+	int ok=0;
+while (ok<10){
+	ok++;
+	if(targetAirTemperature < userHeaterMIN){
+		targetAirflow*= (trimmerMultiplier+1);
+		targetAirTemperature+=(sensorTemp - targetAirTemperature)*(trimmerMultiplier);
+		if(ok>3){
+			targetAirTemperature+=(sensorTemp - targetAirTemperature)*(trimmerMultiplier);
+			targetTime*=(trimmerMultiplier+1);
+		}
 
+	}
+}
+}
 
 /*
  * http://www.engineeringtoolbox.com/design-ventilation-systems-d_121.html
@@ -107,7 +124,7 @@ int Room::setCubicValues(int floor, int height1) {
 void Room::getAirflow() {
 
 	float humidityDifference = humidity-optimalHumidity;//calculate humidity difference
-	airflow = space/standardHeatingTime; // put it in a airFlow function and turn it to m3/s
+	airflow = space/targetTime; // put it in a airFlow function and turn it to m3/s
 
 		airflow= airflow*((humidity/5)+1);//calculate the effect of humidity raise airflow if too much humidity etc.
 		printf("airflow inside get airflow = %3.2f \n", airflow);
@@ -126,30 +143,37 @@ void Room::getAirflow() {
 				airflow= airflow*officeBoost;
 			break;
 			}
-			boost--;
+			if(airflow > MAXairflow){
+				targetTime=targetTime*(airflow/MAXairflow);//increase time in realtion to airflow
+			}
+			boost-=10;
 		}
+		targetAirflow=airflow;
 }
 
 bool Room::getTargetEnergy() {
 	bool ret = 1;
 	int ok=0;
 	float ero = temperature - sensorTemp;
-	if (ero < 0.5 && ero > -0.5) {
 		float energy = ero * space;
-		int time=standardHeatingTime;
+		//float energyInRoom = (space*specificHeat*sensorTemp*airDensity);
+		//energy= energyInRoom+energy;
+		energy= energy-heatTotal;
+		int aika=targetTime;
 		do{
 
-			float celcius =  (energy/time) / (airDensity * airflow * specificHeat);
+			float celcius =  (energy/aika) / (airDensity * airflow * specificHeat);
+			celcius+= temperature;
+			aika += 300;
 			if(celcius < heaterMAX && celcius> heaterMIN){
 				ok=25;
 				targetAirTemperature=celcius;
-				targetTime=time;
+				targetTime=aika;
 			}
 		} while (ok < 22);
 		if (ok == 22) {
 			ret = 0;
 		}
-	}
 	return ret;
 
 }
@@ -181,13 +205,16 @@ void Room::getHeatLoss() {
 	wallsize = sqrt(area) * height;
 	wall = outerWalls * (wallmaterialConductance * wallsize * differentTemp);
 
-	heatloss = wall + vent;
+	float heatloss = wall + vent;
 
-	float heatload; //how much room produces energy
+	float heatload=0; //how much room produces energy
 
-	heatload = (PeopleDensity * peopleMultiplier) + (Windows * windowMultiplier)
-			+ (MachineryDensity * machineryMultiplier); //adding the effect from windows people etc. watts
-	heatloss += heatload;
+	heatload = (PeopleDensity * peopleMultiplier); //+ (Windows * windowMultiplier)
+			//+ (MachineryDensity * machineryMultiplier); //adding the effect from windows people etc. watts
+	heatTotal= heatload-heatloss;
+
+
+
 
 	//starting to change it to celcius
 	/*
@@ -197,12 +224,16 @@ void Room::getHeatLoss() {
 	 * multiplied by difference in temperature dt
 	 * so q=m*Cg*dt
 	 * dt=(m*Cg)/q
+	 * didn't work
+	 *
+	 *
 	 */
-
-	heatloss= (airDensity*specificHeat)/heatloss;
+	//heatloss= (heatloss/time)/(airDensity* /* m^3/s*/specificHeat);//heatloss per second
 
 }
-
+void Room::powerSave(){
+	targetTime=targetTime*6;//sets the target time to reach desired temperature to 3h
+}
 bool Room::update(float Tmp, int mon) {
 	if (month!=mon){ // chances heater min air temperature
 		month=mon;
@@ -214,9 +245,11 @@ bool Room::update(float Tmp, int mon) {
 	getHeatLoss(); //calculate energy room produces/loses
 	getAirflow(); //calculate needed airflow to chance room air (people, space)
 
-	getTargetEnergy(); //if we need to increase / decrease temperature, calculate air temperature needed for that, then time to do that with current known airflow
+	err= getTargetEnergy();//if we need to increase / decrease temperature, calculate air temperature needed for that, then time to do that with current known airflow
 
-	printf("airflow= %3.2f targetAirTemperature= %3.2f \n ", airflow, targetAirTemperature);
+	trimmer();
+
+	printf("targetAirflow= %3.2f targetAirTemperature= %3.2f \n ", targetAirflow, targetAirTemperature);
 
 	//getAirSupplyTemp();  //adjust airflow and time to be more user friendly
 
@@ -232,6 +265,7 @@ void Room::setRoomtype(roomType r) {//sets and defines room type and it's proper
 		PeopleDensity = area / classRoomPeopleDensity;
 		MachineryDensity = area / classRoomMachineryDensity;
 		Windows = outerWalls;
+		break;
 	case computerLab:
 		PeopleDensity = area / computerLabPeopleDensity;
 		MachineryDensity= area / computerLabMachineryDensity;
@@ -252,7 +286,7 @@ void Room::setRoomtype(roomType r) {//sets and defines room type and it's proper
 void Room::setTemperatureValues(float desiredTemp) {//sets the desired temperature value
 	temperature = desiredTemp;
 }
-void Room::setBoost(int hours){
+void Room::setBoost(float hours){
 	boost=hours*360;
 }
 void Room::setSensorTemp(float indtmp) {//sets the sensor temperature(sensor)
@@ -261,11 +295,17 @@ void Room::setSensorTemp(float indtmp) {//sets the sensor temperature(sensor)
 void Room::setRecovery(bool reco) {//do you have recovery unit
 	recovery = reco;
 }
-void Room::setOuterWalls(int outw) {//how many outer walls
+void Room::setOuterWalls(float outw) {//how many outer walls
 	outerWalls = outw;
 }
 void Room::setHumidity(float humm){
 	humidity=humm;
+}
+void Room::setMAXairflow(float flow){
+	MAXairflow=flow;
+}
+void Room::setMINairflow(float flow){
+	MINairflow=flow;
 }
 float Room::getSpaceValue(){
 	return space;
