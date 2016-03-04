@@ -46,7 +46,7 @@ bool flInterfaceTick = 0;
 extern "C" {
 void SysTick_Handler() {
 	milliss++;
-	if (milliss % 10000 == 0) { // every 10 sec
+	if (milliss % 1000 == 0) { // every 10 sec
 		flTick = 1;
 	}
 	if (milliss % 1000 == 0) { // every sec
@@ -80,18 +80,21 @@ int main(void) {
 
 	Heater heater;
 
-	Room room(40, 3);
+	Room room(&eeprom, 40, 3);
 	Clock clock;
-	float roomTemperature = 20;
 	int error = 0;
-	bool  errors[] = { 0, 0, 0, 0, 0, 0 };
+	bool errors[] = { 0, 0, 0, 0, 0, 0 };
 
 	Temperature temp(0);
 	//Pressure pres(0);
 	Humidity humi(0);
 
-	Interface interface(&room, &clock, &roomTemperature, &error, errors, 8, 9, 10, 11,
-			12, 13);
+	float tempData;
+	float humidityData;
+	float pressureData;
+
+	Interface interface(&room, &clock, &tempData, &error, errors, 8, 9,
+			10, 11, 12, 13);
 	interface.lcdBegin();
 	interface.initButtons(but1pin, but2pin, but3pin, but4pin);
 
@@ -101,22 +104,17 @@ int main(void) {
 			flInterfaceTick = 0;
 			interface.update();
 		}
-
 		if (msTick) {
 			msTick = 0;
 			interface.tick();
 
 		}
-
 		if (clockTick) { // once every second
 			clockTick = 0;
 			clock.tick();
 		}
-
 		if (flTick) { // once per 10 second
 			flTick = 0;
-
-			float tempData;
 			if (!temp.getValue(&tempData)) {
 				error = 1;
 				errors[0] = 0;
@@ -124,24 +122,21 @@ int main(void) {
 				error = 0;
 				errors[0] = 0;
 			}
-			float humidityData;
-			if (!humi.getValue(&humidityData)) {
+			if (!humi.getValue(&humidityData, &tempData)) {
 				error = 2;
 				errors[1] = 1;
-			}else {
+			} else {
 				error = 0;
 				errors[1] = 0;
 			}
-			float pressureData;
 			if (0) { // read pressure sensor
 				error = 3;
 				errors[2] = 1;
-			}else {
+			} else {
 				error = 0;
 				errors[2] = 0;
 			}
 			//printf("%d\n",data);
-
 			//room.update(tempData, clock->month, humidityData);
 			//heater.update(room.getHeatflow());
 			//fan.update(room.getAirflow());
