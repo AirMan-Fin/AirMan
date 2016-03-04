@@ -3,7 +3,16 @@
 
 #include "arduino.h"
 #include "Temperature.h"
+#include "Eeprom.h"
 
+#define areaMem  10// save address for area- 4 bytes
+#define heightMem 14 // save address for height- 2 byte
+#define heaterMAXMem 16 // save address for heatermax- 1 byte
+#define recoveryMem 17 // save address for recovery- 1 byte
+#define outerwallMem 18 // save address for outerwalls- 1 byte
+#define roomTypeMem 19 // save address for room type- 1 byte
+
+#define testMode
 /*
  * !!!!!!!!!!Things to do!!!!!!!!!!!!
  *
@@ -16,6 +25,8 @@ enum roomType {
 
 class Room {
 private:
+	Eeprom *eeprom;
+
 	float area=40;
 	float height=3;
 	float space;
@@ -67,7 +78,7 @@ private:
 	void getHeatLoss();
 public:
 
-	Room(int floor = 40, float height1 = 2.5, float temp = 21.00,
+	Room(Eeprom *ee,int floor = 40, float height1 = 2.5, float temp = 21.00,
 			roomType type = classRoom, int outer = 0, bool reco =0);
 
 

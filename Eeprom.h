@@ -23,10 +23,20 @@ public:
 	bool write(int address, uint8_t* buff, int amount);
 
 	/*
+	 * writes number to eeprom registers
+	 */
+	bool writeNumber(int address, float buff, int amount);
+
+	/*
 	 * read from eeprom
 	 * params: address to start from, where to save data, how many addresses to read
 	 */
-	bool read(int add, uint8_t* buff, int amount);
+	bool read(int add, uint8_t* buff, int amount=1);
+
+	/*
+	 * reads from eeprom, then combines data and form float
+	 */
+	bool readAndCombine(int add, int amount, float * buff, int dec);
 
 
 };
