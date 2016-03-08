@@ -1,13 +1,15 @@
 #ifndef PHOTORESISTOR_H
 #define PHOTORESISTOR_H
 
+using namespace std;
+
 #include "arduino.h"
+#include <algorithm>
 
 class Photoresistor {
 private:
 	AnalogPort *sensor;
 	int counter;
-	int grandCounter;
 
 	int photoArray[10];
 	int photoIndex;
@@ -27,6 +29,7 @@ public:
 	 * param: if true, doesn't read port, just return value
 	 */
 	bool update(float *);
+	void measure();
 
 };
 
