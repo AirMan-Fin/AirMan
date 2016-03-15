@@ -3,16 +3,7 @@
 
 #include "arduino.h"
 #include "Temperature.h"
-#include "Eeprom.h"
 
-#define areaMem  10// save address for area- 4 bytes
-#define heightMem 14 // save address for height- 2 byte
-#define heaterMAXMem 16 // save address for heatermax- 1 byte
-#define recoveryMem 17 // save address for recovery- 1 byte
-#define outerwallMem 18 // save address for outerwalls- 1 byte
-#define roomTypeMem 19 // save address for room type- 1 byte
-
-#define testMode
 /*
  * !!!!!!!!!!Things to do!!!!!!!!!!!!
  *
@@ -25,18 +16,16 @@ enum roomType {
 
 class Room {
 private:
-	Eeprom *eeprom;
-
 	float area=40;
 	float height=3;
 	float space;
-	float MAXairflow=10,MINairflow=0;
-	float userHeaterMIN=15;
+	float MAXairflow=10,MINairflow=0.01;
+	float userHeaterMIN=10;
 
 	float PeopleDensity=0;
 	float MachineryDensity=0;
 	float Windows;
-	float time;//standard heating time 1800 increased if airflow exeeds maximum value
+	float targetTime=0;//standard heating time 1800 increased if airflow exeeds maximum value
 
 
 	float sensorTemp=0; //sensor
@@ -49,8 +38,8 @@ private:
 
 
 	float targetAirTemperature=0;
-	float targetTime;
 	float targetAirflow=0;
+	float tMeas=0;
 
 	float airflow; //airflow...
 	float differentTemp; //difference between indoor - outdoor
@@ -78,7 +67,7 @@ private:
 	void getHeatLoss();
 public:
 
-	Room(Eeprom *ee,int floor = 40, float height1 = 2.5, float temp = 21.00,
+	Room(int floor = 40, float height1 = 2.5, float temp = 21.00,
 			roomType type = classRoom, int outer = 0, bool reco =0);
 
 
@@ -95,7 +84,7 @@ public:
 	void setMAXairflow(float);
 	void setMINairflow(float);
 
-	void powerSave();
+	void savingPower();
 	bool  getTargetEnergy();//calculates energy needed to heat room
 
 	void trimmer();
