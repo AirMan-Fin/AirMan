@@ -1,5 +1,4 @@
 
-
 #ifndef LCD_PORT_H_
 #define LCD_PORT_H_
 
@@ -20,6 +19,7 @@
 #define HIGH 1
 #define LOW 0
 
+
 //template<typename T> std::string toStr(T);
 
 void enRit();
@@ -29,19 +29,34 @@ void pinMode(int pin, int mode);
 void delayMicroseconds(int us);
 void delay(int ms);
 
+class Millis {
 
-class Button{
+public:
+	uint32_t mmm;
+	Millis(){
+		mmm=0;
+	}
+	uint32_t millis(){
+		return mmm;
+	}
+	void tick(){
+		mmm++;
+	}
+};
+
+//uint32_t Millis::mm=0;
+
+class Button {
 private:
 	int pin;
 	int prevState;
 public:
-	Button(int);
-	bool read();
+	Button(int);bool read();
 };
 
 static volatile bool adcdone = false;
 
-class AnalogPort{
+class AnalogPort {
 private:
 	int pin;
 public:

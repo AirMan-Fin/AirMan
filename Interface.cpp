@@ -12,7 +12,7 @@ void Interface::handle(key k) {
 	menuHandler->display();
 }
 
-Interface::Interface(Room * r, Clock *c, float * temp, int* er, bool * erro, int rs, int en, int d4, int d5, int d6, int d7) {
+Interface::Interface(Room * r, Clock *c, float * temp, int* er, bool * erro, int8_t *modbus, int rs, int en, int d4, int d5, int d6, int d7) {
 
 	room = r;
 
@@ -28,47 +28,50 @@ Interface::Interface(Room * r, Clock *c, float * temp, int* er, bool * erro, int
 	/*
 	 * creating all required menus
 	 */
-	main = new MainMenu("Main Menu");
-	settingsMenu = new SettingsMenu("Settings");
-	roomMenu = new RoomMenu("Room Setting");
-	dataMenu = new DataMenu("Data", c, temp, er);
+	main = new MainMenu(room,"Main Menu");
+	settingsMenu = new SettingsMenu(room,"Settings");
+	roomMenu = new RoomMenu(room,"Room Setting");
+	dataMenu = new DataMenu(room,"Data", c, temp, er);
 
-	settingsClockMenu = new SettingsClockMenu("Clock", c);
-	settingsErrorMenu = new SettingsErrorMenu("Error messages:", erro);
+	settingsClockMenu = new SettingsClockMenu(room,"Clock", c);
+	settingsErrorMenu = new SettingsErrorMenu(room,"Error messages:", erro);
+	settingsModbusMenu = new SettingsModbusMenu(room,"Modbus reset:", modbus);
 
-	roomSpaceMenu = new RoomSpaceMenu("Space", 10, 0, 99999);
-	roomTypeMenu = new RoomTypeMenu("Type", 0, 0, 3);
-	roomTempMenu = new RoomTempMenu("t.Temp", 20, 16, 28, 0.5);
-	roomHeatRecoverMenu = new RoomHeatRecoverMenu("Heat Recover", 0, 0, 1);
-	roomWindowsMenu = new RoomWindowsMenu("Outer walls", 1, 0, 4);
-	roomSetupMenu = new RoomSetupMenu("Setup", roomSpaceMenu, roomTypeMenu, roomTempMenu, roomWindowsMenu, roomHeatRecoverMenu);
+	roomSpaceMenu = new RoomSpaceMenu(room, "Space", 10, 0, 99999);
+	roomTypeMenu = new RoomTypeMenu(room,"Type", 0, 0, 3);
+	roomTempMenu = new RoomTempMenu(room,"t.Temp", 20, 16, 28, 0.5);
+	roomHeatRecoverMenu = new RoomHeatRecoverMenu(room,"Heat Recover", 0, 0, 1);
+	roomWindowsMenu = new RoomWindowsMenu(room,"Outer walls", 1, 0, 4);
+	roomSetupMenu = new RoomSetupMenu(room,"Setup", roomSpaceMenu, roomTypeMenu, roomTempMenu, roomWindowsMenu, roomHeatRecoverMenu);
 
 	/*
 	 * initializing all menus
 	 */
-	main->init(menuHandler->getpCurrent(), menuHandler->getpVector(), lcd, room);
+	main->init(menuHandler->getpCurrent(), menuHandler->getpVector(), lcd);
 	settingsMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
-			lcd, room);
-	roomMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(), lcd, room);
-	dataMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(), lcd, room);
+			lcd);
+	roomMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(), lcd);
+	dataMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(), lcd);
 
 	roomSpaceMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
-			lcd, room);
+			lcd);
 	roomTypeMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
-			lcd, room);
+			lcd);
 	roomHeatRecoverMenu->init(menuHandler->getpCurrent(),
-			menuHandler->getpVector(), lcd, room);
+			menuHandler->getpVector(), lcd);
 	roomWindowsMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
-			lcd, room);
+			lcd);
 	roomTempMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
-			lcd, room);
+			lcd);
 	roomSetupMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
-				lcd, room);
+				lcd);
 
 	settingsClockMenu->init(menuHandler->getpCurrent(),
-			menuHandler->getpVector(), lcd, room);
+			menuHandler->getpVector(), lcd);
 	settingsErrorMenu->init(menuHandler->getpCurrent(),
-			menuHandler->getpVector(), lcd, room);
+			menuHandler->getpVector(), lcd);
+	settingsModbusMenu->init(menuHandler->getpCurrent(),
+				menuHandler->getpVector(), lcd);
 
 	/*
 	 * add starting menu
@@ -84,6 +87,7 @@ Interface::Interface(Room * r, Clock *c, float * temp, int* er, bool * erro, int
 
 	settingsMenu->addMenuitem(settingsClockMenu);
 	settingsMenu->addMenuitem(settingsErrorMenu);
+	settingsMenu->addMenuitem(settingsModbusMenu);
 
 	roomMenu->addMenuitem(roomSetupMenu);
 	roomMenu->addMenuitem(roomSpaceMenu);

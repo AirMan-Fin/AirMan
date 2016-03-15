@@ -5,7 +5,6 @@
  *      Author: krl
  */
 
-
 #include "arduino.h"
 bool flRit;
 
@@ -20,7 +19,7 @@ void RIT_IRQHandler(void) {
 }
 }
 
-static const int dPort[] = { 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0 };
+static const int dPort[] = { 1, 1, 0,  0,  0,  0, 1, 0,  0, 1,  0, 0,  0,  0 };
 static const int dPin[] = { 10, 9, 29, 9, 10, 16, 3, 0, 24, 0, 27, 28, 12, 14 };
 
 void digitalWrite(int pin, int val) {
@@ -67,9 +66,9 @@ void delay(int us) {
 	while (!Chip_RIT_GetIntStatus(LPC_RITIMER))
 		;
 	// Acknowledge interrupt by clearing RIT interrupt flag
-		Chip_RIT_ClearIntStatus(LPC_RITIMER);
+	Chip_RIT_ClearIntStatus(LPC_RITIMER);
 	// disable RIT – we want a single interrupt after the wait is over
-		Chip_RIT_Disable(LPC_RITIMER);
+	Chip_RIT_Disable(LPC_RITIMER);
 }
 
 void delayMicroseconds(int us) {
@@ -89,9 +88,9 @@ void delayMicroseconds(int us) {
 	while (!Chip_RIT_GetIntStatus(LPC_RITIMER))
 		;
 	// Acknowledge interrupt by clearing RIT interrupt flag
-		Chip_RIT_ClearIntStatus(LPC_RITIMER);
+	Chip_RIT_ClearIntStatus(LPC_RITIMER);
 	// disable RIT – we want a single interrupt after the wait is over
-		Chip_RIT_Disable(LPC_RITIMER);
+	Chip_RIT_Disable(LPC_RITIMER);
 }
 
 Button::Button(int pp) {
@@ -127,7 +126,9 @@ void ADC0A_IRQHandler(void) {
 
 } // extern "C"
 
-CHIP_SWM_PIN_FIXED analogName[]= {SWM_FIXED_ADC0_0,SWM_FIXED_ADC0_1,SWM_FIXED_ADC0_2,SWM_FIXED_ADC0_3,SWM_FIXED_ADC0_4,SWM_FIXED_ADC0_5,SWM_FIXED_ADC0_6,SWM_FIXED_ADC0_7};
+CHIP_SWM_PIN_FIXED analogName[] = { SWM_FIXED_ADC0_0, SWM_FIXED_ADC0_1,
+		SWM_FIXED_ADC0_2, SWM_FIXED_ADC0_3, SWM_FIXED_ADC0_4, SWM_FIXED_ADC0_5,
+		SWM_FIXED_ADC0_6, SWM_FIXED_ADC0_7 };
 
 AnalogPort::AnalogPort(int pin2) {
 	pin = pin2;
@@ -141,8 +142,7 @@ AnalogPort::AnalogPort(int pin2) {
 	/* For ADC0, sequencer A will be used without threshold events.
 	 It will be triggered manually  */
 	Chip_ADC_SetupSequencer(LPC_ADC0, ADC_SEQA_IDX,
-			(ADC_SEQ_CTRL_CHANSEL(pin2)
-					| ADC_SEQ_CTRL_MODE_EOS));
+			(ADC_SEQ_CTRL_CHANSEL(pin2) | ADC_SEQ_CTRL_MODE_EOS));
 
 	/* For ADC0, select analog input pint for channel 0 on ADC0 */
 	Chip_ADC_SetADC0Input(LPC_ADC0, 0);
@@ -151,7 +151,7 @@ AnalogPort::AnalogPort(int pin2) {
 	Chip_ADC_SetTrim(LPC_ADC0, ADC_TRIM_VRANGE_HIGHV);
 
 	/* Assign ADC0_0 to PIO1_8 via SWM (fixed pin) and ADC0_3 to PIO0_5 */
-	Chip_SWM_EnableFixedPin (analogName[pin2]);
+	Chip_SWM_EnableFixedPin(analogName[pin2]);
 
 	/* Need to do a calibration after initialization and trim */
 	Chip_ADC_StartCalibration(LPC_ADC0);
@@ -165,7 +165,7 @@ AnalogPort::AnalogPort(int pin2) {
 	Chip_ADC_EnableInt(LPC_ADC0, ADC_INTEN_SEQA_ENABLE);
 
 	/* Enable related ADC NVIC interrupts */
-	NVIC_EnableIRQ (ADC0_SEQA_IRQn);
+	NVIC_EnableIRQ(ADC0_SEQA_IRQn);
 
 	/* Enable sequencer */
 	Chip_ADC_EnableSequencer(LPC_ADC0, ADC_SEQA_IDX);
@@ -184,6 +184,4 @@ int AnalogPort::read() {
 	int d0 = ADC_DR_RESULT(a0);
 	return d0;
 }
-
-
 

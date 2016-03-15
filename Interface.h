@@ -10,19 +10,12 @@
 #include "Clock.h"
 #include <string>
 
-const char *guide[]={//rows to guide
-		"Quick guide:",
-		"don't lick",    ////
-		"don't eat",
-		"and so on..."
-};
-const int guideLength=4;
-
 class MainMenu: public MenuItem {
 private:
 
 public:
-	MainMenu(std::string nam) {
+	MainMenu(Room *r, std::string nam) {
+		room = r;
 		name = nam;
 		timer = 0;
 	}
@@ -62,8 +55,10 @@ private:
 	int * err;
 	Clock * clock;
 	int value;bool modState;
+
 public:
-	DataMenu(std::string nam, Clock *c, float *t, int * er) {
+	DataMenu(Room *r, std::string nam, Clock *c, float *t, int * er) {
+		room = r;
 		name = nam;
 		clock = c;
 		temp = t;
@@ -77,13 +72,13 @@ public:
 	void ok() {
 		modState = !modState;
 		if (modState) {
-			//room->setBoost(value);
+			room->setBoost(value);
 		}
 	}
 	void up() {
 		if (!modState) {
 			if (timer > 0) {
-				//room->setTemperatureValues(room->getTemperatureValues() + 0.5);
+				room->setTemperatureValues(room->getTemperatureValue() + 0.5);
 			}
 			timer = 3;
 		}
@@ -96,7 +91,7 @@ public:
 	void down() {
 		if (!modState) {
 			if (timer > 0) {
-				//room->setTemperatureValues(room->getTemperatureValues() - 0.5);
+				room->setTemperatureValues(room->getTemperatureValue() - 0.5);
 			}
 			timer = 3;
 		} else {
@@ -132,10 +127,11 @@ public:
 				lcd->print("ER");
 			lcd->setCursor(0, 1);
 			if (timer == 0)
-				int len = lcd->print(*temp);
+				lcd->print(*temp, 1);
 			else {
 				lcd->print("-");
-				//lcd->print(room->getTemperatureValues());
+				lcd->print(room->getTemperatureValue(), 1);
+				//printf("%3.2f\n",room->getTemperatureValue());
 			}
 			lcd->setCursor(5, 1);
 			lcd->print("C");
@@ -148,8 +144,8 @@ public:
 				lcd->print("0");
 			lcd->print(clock->min);
 
-			if(*(err)!=0){
-				lcd->setCursor(15,1);
+			if (*(err) != 0) {
+				lcd->setCursor(15, 1);
 				lcd->print(*(err));
 			}
 		}
@@ -167,7 +163,8 @@ class SettingsMenu: public MenuItem {
 private:
 
 public:
-	SettingsMenu(std::string nam) {
+	SettingsMenu(Room *r, std::string nam) {
+		room = r;
 		name = nam;
 	}
 
@@ -181,7 +178,8 @@ class RoomMenu: public MenuItem {
 private:
 
 public:
-	RoomMenu(std::string nam) {
+	RoomMenu(Room *r, std::string nam) {
+		room = r;
 		name = nam;
 	}
 
@@ -195,9 +193,10 @@ public:
 class RoomTempMenu: public EndMenu {
 
 public:
-	RoomTempMenu(std::string nam, float t, float min2 = 0, float max2 = 100,
-			float inter = 1) {
-		value = temp = t;
+	RoomTempMenu(Room *r, std::string nam, float t, float min2 = 0, float max2 =
+			100, float inter = 1) {
+		room = r;
+		value = temp = room->getTemperatureValue();
 		min = min2;
 		max = max2;
 		name = nam;
@@ -224,8 +223,9 @@ private:
 	float max2;
 	float min2;
 public:
-	RoomSpaceMenu(std::string nam, int t, int min2_ = 0, int max2_ = 100,
-			int inter = 1) {
+	RoomSpaceMenu(Room *r, std::string nam, int t, int min2_ = 0, int max2_ =
+			100, int inter = 1) {
+		room = r;
 		value = temp = t;
 		min = min2_;
 		max = max2_;
@@ -317,8 +317,9 @@ const roomType helpBlock[] = { classRoom, computerLab, auditorium, office
 class RoomTypeMenu: public EndMenu {
 
 public:
-	RoomTypeMenu(std::string nam, int t, int min2 = 0, int max2 = 100,
+	RoomTypeMenu(Room *r, std::string nam, int t, int min2 = 0, int max2 = 100,
 			int inter = 1) {
+		room = r;
 		value = temp = t;
 		min = min2;
 		max = max2;
@@ -364,8 +365,9 @@ public:
 class RoomWindowsMenu: public EndMenu {
 
 public:
-	RoomWindowsMenu(std::string nam, int t, int min2 = 0, int max2 = 100,
-			int inter = 1) {
+	RoomWindowsMenu(Room *r, std::string nam, int t, int min2 = 0, int max2 =
+			100, int inter = 1) {
+		room = r;
 		value = temp = t;
 		min = min2;
 		max = max2;
@@ -388,8 +390,9 @@ public:
 class RoomHeatRecoverMenu: public EndMenu {
 
 public:
-	RoomHeatRecoverMenu(std::string nam, int t, int min2 = 0, int max2 = 100,
-			int inter = 1) {
+	RoomHeatRecoverMenu(Room *r, std::string nam, int t, int min2 = 0,
+			int max2 = 100, int inter = 1) {
+		room = r;
 		value = temp = t;
 		min = min2;
 		max = max2;
@@ -438,8 +441,9 @@ class RoomSetupMenu: public EndMenu {
 	RoomHeatRecoverMenu *reco;
 
 public:
-	RoomSetupMenu(std::string nam, RoomSpaceMenu *s, RoomTypeMenu *t,
+	RoomSetupMenu(Room *rr, std::string nam, RoomSpaceMenu *s, RoomTypeMenu *t,
 			RoomTempMenu *te, RoomWindowsMenu *o, RoomHeatRecoverMenu *r) {
+		room = rr;
 		name = nam;
 		state = 6;
 
@@ -490,31 +494,62 @@ class SettingsErrorMenu: public EndMenu {
 private:
 	bool * errors;
 public:
-	SettingsErrorMenu(std::string nam, bool * er) {
-		name=nam;
-		errors=er;
+	SettingsErrorMenu(Room *r, std::string nam, bool * er) {
+		room = r;
+		name = nam;
+		errors = er;
 	}
 
-	void display(){
+	void display() {
 		func();
-		if(errors[0])
+		if (errors[0])
 			lcd->print(1);
-		lcd->setCursor(3,1);
-		if(errors[1])
+		lcd->setCursor(3, 1);
+		if (errors[1])
 			lcd->print(2);
-		lcd->setCursor(5,1);
-		if(errors[2])
+		lcd->setCursor(5, 1);
+		if (errors[2])
 			lcd->print(3);
-		lcd->setCursor(7,1);
-		if(errors[3])
+		lcd->setCursor(7, 1);
+		if (errors[3])
 			lcd->print(4);
-		lcd->setCursor(9,1);
-		if(errors[4])
+		lcd->setCursor(9, 1);
+		if (errors[4])
 			lcd->print(5);
-		lcd->setCursor(11,1);
-		if(errors[5])
+		lcd->setCursor(11, 1);
+		if (errors[5])
 			lcd->print(6);
-		lcd->setCursor(13,1);
+		lcd->setCursor(13, 1);
+	}
+
+};
+
+class SettingsModbusMenu: public EndMenu {
+private:
+	bool * errors;
+	int8_t * pt;
+public:
+	SettingsModbusMenu(Room *r, std::string nam, int8_t * nn) {
+		room = r;
+		name = nam;
+		pt = nn;
+	}
+
+	void ok() {
+		if (modState) {
+			(*pt) = 3;
+		}
+		modState = !modState;
+	}
+
+	void display() {
+		func();
+		if (modState) {
+			lcd->print("Reset modbus?");
+		} else {
+			lcd->print("Press ok to reset");
+		}
+
 	}
 
 };
@@ -530,7 +565,8 @@ private:
 	int tempMonth;
 	int tempYear;
 public:
-	SettingsClockMenu(std::string nam, Clock * c) {
+	SettingsClockMenu(Room *r, std::string nam, Clock * c) {
+		room = r;
 		name = nam;
 		clock = c;
 		modState2 = 0;
@@ -645,34 +681,38 @@ public:
 	}
 };
 
-class SettingsGuideMenu: public EndMenu{
+class SettingsGuideMenu: public EndMenu {
+private:
+
+	const int guideLength = 4;
 public:
-	SettingsGuideMenu(std::string nam){
-		name=nam;
-		value=0;
+	SettingsGuideMenu(Room *r, std::string nam) {
+		room = r;
+		name = nam;
+		value = 0;
 
 	}
-	void up(){
-		if(value<guideLength-1){
+	void up() {
+		if (value < guideLength - 1) {
 			value++;
-
 
 		}
 	}
-	void down(){
-		if(value>0){
+	void down() {
+		if (value > 0) {
 			value--;
 		}
 	}
-	void diplay(){
+	void diplay() {
 		lcd->clear();
-		lcd->print(guide[(int)value]);
-		lcd->setCursor(0,1);
-		lcd->print(guide[(int)value+1]);
+		//lcd->print(guide[(int)value]);
+		lcd->setCursor(0, 1);
+		//lcd->print(guide[(int)value+1]);
 	}
 };
 
 class Interface {
+
 private:
 	LiquidCrystal *lcd;bool butPressed[4];
 	Room *room;
@@ -687,6 +727,7 @@ private:
 
 	SettingsClockMenu *settingsClockMenu;
 	SettingsErrorMenu *settingsErrorMenu;
+	SettingsModbusMenu *settingsModbusMenu;
 
 	RoomSpaceMenu *roomSpaceMenu; //area, height
 	RoomTypeMenu *roomTypeMenu; // room mtype
@@ -704,8 +745,8 @@ public:
 	 * creates required menu instances
 	 * creates lcd and room instances
 	 */
-	Interface(Room * r, Clock * c, float * temp, int * er, bool * erro, int rs = 8, int en = 9,
-			int d4 = 10, int d5 = 11, int d6 = 12, int d7 = 13);
+	Interface(Room * r, Clock * c, float * temp, int * er, bool * erro,int8_t * modbus, int rs =
+			8, int en = 9, int d4 = 10, int d5 = 11, int d6 = 12, int d7 = 13);
 	~Interface();
 
 	/*

@@ -29,6 +29,8 @@
 
 /* _____PROJECT INCLUDES_____________________________________________________ */
 #include "ModbusMaster.h"
+#include "crc16.h"
+#include "cstdio"
 
 /* _____GLOBAL VARIABLES_____________________________________________________ */
 #if defined(ARDUINO_ARCH_AVR)
@@ -47,21 +49,8 @@ UARTClass* MBSerial = &Serial; ///< Pointer to Serial class object
 
  @ingroup setup
  */
-
-static uint16_t crc16_update(uint16_t crc, uint8_t a) {
-	int i;
-
-	crc ^= a;
-	for (i = 0; i < 8; ++i) {
-		if (crc & 1)
-			crc = (crc >> 1) ^ 0xA001;
-		else
-			crc = (crc >> 1);
-	}
-
-	return crc;
-}
-ModbusMaster::ModbusMaster(void) {
+ModbusMaster::ModbusMaster(Millis *m) {
+	mm = m;
 	_u8SerialPort = 0;
 	_u8MBSlave = 1;
 }
@@ -75,7 +64,8 @@ ModbusMaster::ModbusMaster(void) {
  @param u8MBSlave Modbus slave ID (1..255)
  @ingroup setup
  */
-ModbusMaster::ModbusMaster(uint8_t u8MBSlave) {
+ModbusMaster::ModbusMaster(Millis *m, uint8_t u8MBSlave) {
+	mm = m;
 	_u8SerialPort = 0;
 	_u8MBSlave = u8MBSlave;
 }
@@ -90,7 +80,8 @@ ModbusMaster::ModbusMaster(uint8_t u8MBSlave) {
  @param u8MBSlave Modbus slave ID (1..255)
  @ingroup setup
  */
-ModbusMaster::ModbusMaster(uint8_t u8SerialPort, uint8_t u8MBSlave) {
+ModbusMaster::ModbusMaster(Millis *m, uint8_t u8SerialPort, uint8_t u8MBSlave) {
+	mm = m;
 	_u8SerialPort = (u8SerialPort > 3) ? 0 : u8SerialPort;
 	_u8MBSlave = u8MBSlave;
 }
@@ -434,10 +425,12 @@ uint8_t ModbusMaster::writeSingleCoil(uint16_t u16WriteAddress,
  */
 uint8_t ModbusMaster::writeSingleRegister(uint16_t u16WriteAddress,
 		uint16_t u16WriteValue) {
+
 	_u16WriteAddress = u16WriteAddress;
 	_u16WriteQty = 0;
 	_u16TransmitBuffer[0] = u16WriteValue;
 	return ModbusMasterTransaction(ku8MBWriteSingleRegister);
+
 }
 
 /**
@@ -695,7 +688,7 @@ uint8_t ModbusMaster::ModbusMasterTransaction(uint8_t u8MBFunction) {
 	MBSerial->flush();    // flush transmit buffer
 
 	// loop until we run out of time or bytes, or an error occurs
-	u32StartTime = millis();
+	u32StartTime = mm->millis();
 	while (u8BytesLeft && !u8MBStatus) {
 		if (MBSerial->available()) {
 #if __MODBUSMASTER_DEBUG__
@@ -760,7 +753,7 @@ uint8_t ModbusMaster::ModbusMasterTransaction(uint8_t u8MBFunction) {
 				break;
 			}
 		}
-		if ((millis() - u32StartTime) > ku16MBResponseTimeout) {
+		if ((mm->millis() - u32StartTime) > ku16MBResponseTimeout) {
 			u8MBStatus = ku8MBResponseTimedOut;
 		}
 	}

@@ -32,30 +32,33 @@
 
 // TODO: insert other definitions and declarations here
 #define TICKRATE 1000
-#define but1pin 0
-#define but2pin 1
-#define but3pin 2
-#define but4pin 3
+#define but1pin 4
+#define but2pin 5
+#define but3pin 6
+#define but4pin 7
 
-unsigned long long milliss;
+//#define heathbeat
+
+//unsigned long long milliss;
 bool flTick = 0;
 bool clockTick = 0;
 bool msTick = 0;
 bool flInterfaceTick = 0;
+Millis *mm;
 
 extern "C" {
 void SysTick_Handler() {
-	milliss++;
-	if (milliss % 1000 == 0) { // every 10 sec
+	mm->tick();
+	if (mm->millis() % 1000 == 0) { // every 10 sec
 		flTick = 1;
 	}
-	if (milliss % 1000 == 0) { // every sec
+	if (mm->millis() % 1000 == 0) { // every sec
 		clockTick = 1;
 	}
-	if (milliss % 1000 == 0) { // every 100 millisec
+	if (mm->millis() % 1000 == 0) { // every 100 millisec
 		msTick = 1;
 	}
-	if (milliss % 10 == 0) { // every 10 millisec
+	if (mm->millis() % 10 == 0) { // every 10 millisec
 		flInterfaceTick = 1;
 	}
 }
@@ -70,11 +73,12 @@ int main(void) {
 	Board_LED_Set(0, true);
 #endif
 #endif
+	mm = new Millis();
 
 	SysTick_Config(Chip_Clock_GetSysTickClockRate() / TICKRATE);
 	enRit();
 	// TODO: insert code here
-	//Fan fan;
+	Fan fan(mm);
 
 	Eeprom eeprom(1);
 
@@ -85,6 +89,8 @@ int main(void) {
 	int error = 0;
 	bool errors[] = { 0, 0, 0, 0, 0, 0 };
 
+	int8_t modbusConnection = 3;
+
 	Temperature temp(0);
 	//Pressure pres(0);
 	Humidity humi(0);
@@ -93,8 +99,8 @@ int main(void) {
 	float humidityData;
 	float pressureData;
 
-	Interface interface(&room, &clock, &tempData, &error, errors, 8, 9,
-			10, 11, 12, 13);
+	Interface interface(&room, &clock, &tempData, &error, errors,&modbusConnection, 8, 9, 10, 11,
+			12, 13);
 	interface.lcdBegin();
 	interface.initButtons(but1pin, but2pin, but3pin, but4pin);
 
@@ -112,8 +118,11 @@ int main(void) {
 		if (clockTick) { // once every second
 			clockTick = 0;
 			clock.tick();
+#ifdef hearthbeat
+			fan.update();
+#endif
 		}
-		if (flTick) { // once per 10 second
+		if (flTick) { // once every 10 second
 			flTick = 0;
 			if (!temp.getValue(&tempData)) {
 				error = 1;
@@ -139,7 +148,17 @@ int main(void) {
 			//printf("%d\n",data);
 			//room.update(tempData, clock->month, humidityData);
 			//heater.update(room.getHeatflow());
-			//fan.update(room.getAirflow());
+			if (modbusConnection>0) {
+				modbusConnection--;
+				int ss = mm->mmm;
+				bool o = fan.setAirFlow(60);
+				if(o){
+					modbusConnection=3;
+				}
+				ss = mm->mmm - ss;
+				printf("time: %d ", ss);
+				printf("result: %d\n", o);
+			}
 		}
 	}
 

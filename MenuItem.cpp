@@ -5,11 +5,10 @@
 #include <cstdio>
 
 void MenuItem::init(MenuItem** mm, std::vector<MenuItem*> * mv,
-		LiquidCrystal *l, Room * r) {
+		LiquidCrystal *l) {
 	current = mm;
 	prevs2 = mv;
 	lcd = l;
-	room = r;
 }
 MenuItem::MenuItem() {
 	place = 0;

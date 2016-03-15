@@ -7,50 +7,51 @@
 
 #include "Fan.h"
 
-Fan::Fan(int fanspeed) {
+Fan::Fan(Millis *m, int fanspeed) {
 	speed = fanspeed;
-	node = new ModbusMaster (2); // Create modbus object that connects to slave id 2
+	node = new ModbusMaster(m, 2); // Create modbus object that connects to slave id 2
 	node->begin(9600);
+
+	node->writeSingleRegister(0, 0x0406);
+
+	delay(1000);
+
+	node->writeSingleRegister(0, 0x047F);
+
+	delay(1000);
 }
 
-void Fan::update(int pulse) {
-	//Chip_GPIO_SetPinState(LPC_GPIO, port, pin, true);
+void Fan::update() {
+	node->writeSingleRegister(0, 0x0406);
 }
 
 bool Fan::setFrequency(uint16_t freq) {
 	uint8_t result;
 	int ctr;
-	bool atSetpoint;
-	const int delayy = 500;
+	bool ok = 0;
+	uint16_t data[6];
 
-	node->writeSingleRegister(1, freq); // set motor frequency
+	//node->setTransmitBuffer(0,255);
 
-	//printf("Set freq = %d\n", freq/40); // for debugging
+	result = node->writeSingleRegister(1, freq);
 
-	// wait until we reach set point or timeout occurs
-	ctr = 0;
-	atSetpoint = false;
-	do {
-		delay(delayy);
-		// read status word
-		result = node->readHoldingRegisters(3, 1);
-		// check if we are at setpoint
-		if (result == node->ku8MBSuccess) {
-			if (node->getResponseBuffer(0) & 0x0100)
-				atSetpoint = true;
-		}
-		ctr++;
-	} while (ctr < 20 && !atSetpoint);
 
-	//printf("Elapsed: %d\n", ctr * delay); // for debugging
+	if (result == node->ku8MBSuccess) {
+		ok = 1;
+	}
 
-	return atSetpoint;
+	return ok;
 }
 
-void Fan::setAirFlow(int flow){
-	float f= flow;
-	f = MAXAIRFLOW *5;
-	setFrequency((uint16_t)f);
+bool Fan::setAirFlow(int flow) {
+	float f = flow;
+	f = 60;
+	return setFrequency((uint16_t) f);
 }
 
+/*
+ *
+ *0, 0x047F
+ *
+ */
 

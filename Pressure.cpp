@@ -20,16 +20,16 @@ Pressure::Pressure(int a) {
  * param: if true, doesn't read port, just return value
  */
 
-float Pressure::getValue(bool b) {
-	if (!b) {
+bool Pressure::getValue(float * sss) {
+	bool ret = 1;
 
-		i2c->transaction(0x40, Otemp, (uint32_t) 1, Itemp, (uint32_t) 3);
-		float luku = Itemp[0] << 8 | Itemp[1];
+	ret = i2c->transaction(0x40, Otemp, (uint32_t) 0, Itemp, (uint32_t) 3);
+	float luku = Itemp[0] << 8 | Itemp[1];
 
-		luku = (luku / SCALE_FACTOR);
-		value = luku * 0.95;
+	luku = (luku / SCALE_FACTOR);
+	value = luku * 0.95;
+	(*sss) = value;
 
-	}
-	return value;
+	return ret;
 
 }

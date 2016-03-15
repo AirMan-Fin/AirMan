@@ -20,15 +20,22 @@ Humidity::Humidity(int a) {
  * param: if true, doesn't read port, just return value
  */
 
-bool Humidity::getValue(float * res) {
-	bool ok = i2c->transaction(0x27, Otemp, (uint32_t) 1, Itemp, (uint32_t) 3);
+bool Humidity::getValue(float * res, float * res2) {
+	i2c->plainWriteCommand(0x27);
+	delay(40);
+	bool ok = 1;
+	ok = i2c->transaction(0x27, Otemp, (uint32_t) 0, Itemp, (uint32_t) 4);
+
 	float luku = (Itemp[0] & 0b00111111) << 8 | Itemp[1];
-	//printf("status: %d, dd: %d\n", (Itemp[0] >> 6), (int)luku);
+	humiValue = (luku / 16386) * 100;
 
-	luku = (luku / 16386) * 100;
+	float luku2 = ((Itemp[2] << 8) | Itemp[3]) >> 2;
+	tempValue = (luku2 / 16386) * 165 - 40;
 
-	value = luku;
-	(*res) = value;
+	//printf("status: %d, temp: %3.2f, humi:%3.2f\n", (Itemp[0] >> 6), tempValue, humiValue);
+
+	(*res) = humiValue;
+	(*res2) = tempValue;
 	return ok;
 
 }

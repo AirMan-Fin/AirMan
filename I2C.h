@@ -15,6 +15,8 @@ public:
 	I2C(int deviceNumber, uint32_t speed);
 	virtual ~I2C();
 	bool transaction(uint8_t devAddr, uint8_t *txBuffPtr, uint16_t txSize, uint8_t *rxBuffPtr, uint16_t rxSize);
+	bool plainWriteCommand(uint8_t);
+
 private:
 	LPC_I2C_T *device;
 	static const unsigned int I2C_CLK_DIVIDER = 40;

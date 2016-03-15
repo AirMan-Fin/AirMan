@@ -21,7 +21,7 @@ public:
 	LiquidCrystal *lcd;
 	Room *room;
 
-	void init(MenuItem**, std::vector<MenuItem*> *, LiquidCrystal *l, Room * r);
+	void init(MenuItem **mm, std::vector<MenuItem*> *, LiquidCrystal *l);
 	MenuItem();
 
 	/*

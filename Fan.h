@@ -10,6 +10,7 @@
 
 #include "arduino.h"
 #include "ModbusMaster.h"
+#include "cstdio"
 
 /*
  * max cubicmeter per second fan can provide -> 500 hz frequency
@@ -24,11 +25,11 @@ private:
 
 	bool setFrequency( uint16_t);
 public:
-	Fan(int s = 0);
+	Fan(Millis *m ,int s = 0);
 
-	void update(int);
+	void update();
 
-	void setAirFlow(int);
+	bool setAirFlow(int);
 
 };
 

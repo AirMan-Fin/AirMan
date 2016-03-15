@@ -9,10 +9,11 @@ class Humidity {
 private:
 
 	I2C* i2c;
-	uint8_t Itemp[3];
-	uint8_t Otemp[3];
+	uint8_t Itemp[4];
+	uint8_t Otemp[2];
 
-	int value;
+	float tempValue;
+	float humiValue;
 
 public:
 	/*
@@ -24,7 +25,7 @@ public:
 	* returns pressure value
 	* param: if true, doesn't read port, just return value
 	*/
-	bool getValue(float *);
+	bool getValue(float *, float *);
 
 };
 

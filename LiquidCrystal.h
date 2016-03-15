@@ -82,6 +82,7 @@ public:
   int print(char *s);
   int print(const char *s);
   int print(int);
+  int print(float,int);
 
 
   void createChar(uint8_t, uint8_t[]);

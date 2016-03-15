@@ -39,20 +39,18 @@
 
 #include "I2C.h"
 
-
 I2C::I2C(int deviceNumber, uint32_t speed) {
-	if(deviceNumber == 0) {
+	if (deviceNumber == 0) {
 		device = LPC_I2C0;
 		Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 22, IOCON_DIGMODE_EN | I2C_MODE);
 		Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 23, IOCON_DIGMODE_EN | I2C_MODE);
 		Chip_SWM_EnableFixedPin(SWM_FIXED_I2C0_SCL);
 		Chip_SWM_EnableFixedPin(SWM_FIXED_I2C0_SDA);
-	}
-	else {
+	} else {
 		// currently we support only I2C number 0
 	}
 	/* Enable I2C clock and reset I2C peripheral - the boot ROM does not
-	   do this */
+	 do this */
 	Chip_I2C_Init(device);
 
 	/* Setup clock rate for I2C */
@@ -69,9 +67,9 @@ I2C::~I2C() {
 	// TODO Auto-generated destructor stub
 }
 
-
-bool I2C::transaction(uint8_t devAddr, uint8_t *txBuffPtr, uint16_t txSize, uint8_t *rxBuffPtr, uint16_t rxSize) {
-	I2CM_XFER_T  i2cmXferRec;
+bool I2C::transaction(uint8_t devAddr, uint8_t *txBuffPtr, uint16_t txSize,
+		uint8_t *rxBuffPtr, uint16_t rxSize) {
+	I2CM_XFER_T i2cmXferRec;
 	/* Setup I2C transfer record */
 	i2cmXferRec.slaveAddr = devAddr;
 	i2cmXferRec.status = 0;
@@ -85,9 +83,28 @@ bool I2C::transaction(uint8_t devAddr, uint8_t *txBuffPtr, uint16_t txSize, uint
 	/* Test for valid operation */
 	if (i2cmXferRec.status == I2CM_STATUS_OK) {
 		return true;
-	}
-	else {
+	} else {
 		return false;
 	}
 }
 
+bool I2C::plainWriteCommand(uint8_t devAddr) {
+	uint8_t arr[2];
+	I2CM_XFER_T i2cmXferRec;
+	/* Setup I2C transfer record */
+	i2cmXferRec.slaveAddr = devAddr;
+	i2cmXferRec.status = 0;
+	i2cmXferRec.txSz = 1;
+	i2cmXferRec.rxSz = 0;
+	i2cmXferRec.txBuff = arr;
+	i2cmXferRec.rxBuff = arr;
+
+	Chip_I2CM_Xfer(device, &i2cmXferRec);
+
+	/* wait for status change interrupt */
+	while (!Chip_I2CM_IsMasterPending(device))
+		;
+
+	Chip_I2CM_SendStop(device);
+	return 1;
+}

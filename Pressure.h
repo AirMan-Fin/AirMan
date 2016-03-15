@@ -23,7 +23,7 @@ public:
 	 * returns pressure value
 	 * param: if true, doesn't read port, just return value
 	 */
-	float getValue(bool read=0);
+	bool getValue(float *);
 
 };
 

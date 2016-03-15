@@ -57,7 +57,7 @@ Set to 1 to enable debugging features within class:
 #include <cstddef>
 #endif
 
-uint32_t millis();
+#include "arduino.h"
 #define BYTE 0xA5
 
 /* _____UTILITY MACROS_______________________________________________________ */
@@ -83,9 +83,9 @@ RS232/485 (via RTU protocol).
 class ModbusMaster
 {
   public:
-    ModbusMaster();
-    ModbusMaster(uint8_t);
-    ModbusMaster(uint8_t, uint8_t);
+    ModbusMaster(Millis *m);
+    ModbusMaster(Millis *m, uint8_t);
+    ModbusMaster(Millis *m, uint8_t, uint8_t);
 
     void begin();
     void begin(uint16_t);
@@ -233,6 +233,7 @@ class ModbusMaster
     uint8_t  readWriteMultipleRegisters(uint16_t, uint16_t);
 
   private:
+    Millis *mm;
     uint8_t  _u8SerialPort;                                      ///< serial port (0..3) initialized in constructor
     uint8_t  _u8MBSlave;                                         ///< Modbus slave (1..255) initialized in constructor
     uint16_t _u16BaudRate;                                       ///< baud rate (300..115200) initialized in begin()
@@ -265,7 +266,7 @@ class ModbusMaster
     static const uint8_t ku8MBReadWriteMultipleRegisters = 0x17; ///< Modbus function 0x17 Read Write Multiple Registers
 
     // Modbus timeout [milliseconds]
-    static const uint16_t ku16MBResponseTimeout          = 2000; ///< Modbus timeout [milliseconds]
+    static const uint16_t ku16MBResponseTimeout          = 50; ///< Modbus timeout [milliseconds] standard was 1000, way
 
     // master function that conducts Modbus transactions
     uint8_t ModbusMasterTransaction(uint8_t u8MBFunction);
