@@ -1,57 +1,83 @@
 #include "Photoresistor.h"
 
 Photoresistor::Photoresistor(int a) {
-	sensor = new AnalogPort(a);
+	//sensor = new AnalogPort(a);
+	isLightOn = 0;
+	threshold = 0;
 	counter = 0;
 	photoIndex = 0;
 	resistorIndex = 0;
+	upperAverage = 0;
+	lowerAverage = 0;
+
+	for (int i = 0; i < 10; i++){
+		photoArray[i] = 0;
+	}
+
+	for (int j = 0; j < 144; j++){
+		resistorArray[j] = 0;
+	}
+	
 }
 
-bool Photoresistor::measure() {
+void Photoresistor::measure() {
 
 	counter++;
 
 	if (counter > 60) {
 		counter = 0;
 
-		photoArray[photoIndex] = sensor->read();
+		//photoArray[photoIndex] = sensor->read();
 		photoIndex++;
 
 		if (photoIndex == 9) {
 			photoIndex = 0;
 			int temp = 0;
-			for (int i = 0; 1 < 10; i++) {
+			for (int i = 0; i < 10; i++) {
 				temp = photoArray[i] + temp;
 			}
-			int temp2 = 0;
-			temp2 = temp / 10;
-			resistorArray[resistorIndex] = temp2;
+
+			temp = temp / 10;
+
+			resistorArray[resistorIndex] = temp;
 			resistorIndex++;
 		}
 
-		if (resistorIndex == 144) {
+		if (resistorIndex == 143) {
 			resistorIndex = 0;
 
-			std::sort(resistorIndex, resistorIndex + 144);
+			sort(begin(resistorArray), end(resistorArray));
 
 			int temp3 = 0;
-			for (int i = 143; i > 99; i--) {
-				temp3 = temp3 + resistorArray[i];
+			for (int j = 143; j > 100; j--) {
+				temp3 = temp3 + resistorArray[j];
 			}
+
 			upperAverage = temp3 / 43;
 
 			int temp4 = 0;
-			for (int i = 0; i < 43; i++) {
-				temp4 = temp4 + resistorArray[i];
+			for (int k = 0; k < 43; k++) {
+				temp4 = temp4 + resistorArray[k];
 			}
 			lowerAverage = temp4 / 43;
 		}
 	}
 }
 
-bool Photoresistor::update(float * res){
+bool Photoresistor::getLightState(){
 
+	threshold = upperAverage - lowerAverage;
+	threshold = threshold * 0.15;
+
+	if (sensor->read() - upperAverage < threshold || upperAverage - sensor->read() > threshold){
+		return 1;
+	}
+
+	if (sensor->read() - lowerAverage < threshold || lowerAverage - sensor->read() > threshold){
+		return 0;
+	}
 }
 
-
-
+bool Photoresistor::update(float * res){
+	return 0;
+}
