@@ -3,12 +3,13 @@
 
 using namespace std;
 
-#include "arduino.h"
+//#include "arduino.h"
+#include <iostream>
 #include <algorithm>
 
 class Photoresistor {
 private:
-	AnalogPort *sensor;
+	//AnalogPort *sensor;
 	int counter;
 
 	int photoArray[10];
@@ -19,15 +20,14 @@ private:
 	int upperAverage;
 	int lowerAverage;
 
-	int accuracy;
+	int threshold;
+	bool isLightOn;
+
 public:
 	
 	Photoresistor(int);
 
-	/*
-	 * returns port value
-	 * param: if true, doesn't read port, just return value
-	 */
+	bool getLightState();
 	bool update(float *);
 	void measure();
 
