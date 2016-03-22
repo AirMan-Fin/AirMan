@@ -19,7 +19,7 @@ void RIT_IRQHandler(void) {
 }
 }
 
-static const int dPort[] = { 1, 1, 0,  0,  0,  0, 1, 0,  0, 1,  0, 0,  0,  0 };
+static const int dPort[] = { 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0 };
 static const int dPin[] = { 10, 9, 29, 9, 10, 16, 3, 0, 24, 0, 27, 28, 12, 14 };
 
 void digitalWrite(int pin, int val) {
@@ -99,13 +99,31 @@ Button::Button(int pp) {
 }
 
 bool Button::read() {
-	bool now = digitalRead((uint8_t) pin);
+	state = digitalRead((uint8_t) pin);
 	//printf("d:%d\n",now);
-	if (now != prevState) {
-		prevState = now;
-		return now;
+	if (state != prevState) {
+		prevState = state;
+		return state;
 	}
 	return 0;
+}
+
+bool Button::isPressed() {
+	bool ret = 0;
+	if (count > 6) {
+		ret = digitalRead((uint8_t) pin);
+		count=3;
+	}
+
+	//printf("d:%d\n",now);
+	return ret;
+}
+
+void Button::tick() {
+	if (digitalRead((uint8_t)pin) && count <8)
+		count++;
+	else
+		count=0;
 }
 
 extern "C" {
@@ -183,5 +201,13 @@ int AnalogPort::read() {
 	uint32_t a0 = Chip_ADC_GetDataReg(LPC_ADC0, pin);
 	int d0 = ADC_DR_RESULT(a0);
 	return d0;
+}
+
+PWMOutput::PWMOutput(int p) {
+
+}
+
+int PWMOutput::write(uint8_t value) {
+
 }
 

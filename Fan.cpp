@@ -8,33 +8,42 @@
 #include "Fan.h"
 
 Fan::Fan(Millis *m, int fanspeed) {
-	speed = fanspeed;
+	for (int a = 0; a < 100; a++) {
+		calibration[a]=0;
+	}
+	autoMode = 1;
+
 	node = new ModbusMaster(m, 2); // Create modbus object that connects to slave id 2
 	node->begin(9600);
 
 	node->writeSingleRegister(0, 0x0406);
-
 	delay(1000);
-
 	node->writeSingleRegister(0, 0x047F);
-
 	delay(1000);
+
 }
 
-void Fan::update() {
-	node->writeSingleRegister(0, 0x0406);
+void Fan::update(float pres) {
+
+	currentAirSpeed = getAirVelocity(pres);
+	if (currentAirSpeed - targetAirSpeed < AIRSPEEDACCURACY
+			&& targetAirSpeed - currentAirSpeed < AIRSPEEDACCURACY) {
+		if (currentAirSpeed < targetAirSpeed) {
+			frequency += 10;
+		} else {
+			frequency -= 10;
+		}
+	} else {
+		calibration[((int) frequency) / 5] = (uint8_t) (currentAirSpeed * 100);
+	}
+
+	setFrequency(frequency);
 }
 
 bool Fan::setFrequency(uint16_t freq) {
-	uint8_t result;
-	int ctr;
 	bool ok = 0;
-	uint16_t data[6];
 
-	//node->setTransmitBuffer(0,255);
-
-	result = node->writeSingleRegister(1, freq);
-
+	uint8_t result = node->writeSingleRegister(1, freq);
 
 	if (result == node->ku8MBSuccess) {
 		ok = 1;
@@ -43,10 +52,48 @@ bool Fan::setFrequency(uint16_t freq) {
 	return ok;
 }
 
-bool Fan::setAirFlow(int flow) {
-	float f = flow;
-	f = 60;
-	return setFrequency((uint16_t) f);
+int Fan::setAirFlow(int flow, float pres) {
+	bool ret = 0;
+	if (autoMode) {
+		currentAirSpeed = getAirVelocity(pres);
+		targetAirSpeed = flow / area;
+		if (targetAirSpeed > MAXAIRSPEED) {
+			ret += 10;
+			targetAirSpeed = MAXAIRSPEED;
+		}
+		frequency = (targetAirSpeed * area) / (currentAirSpeed * area) * 500;
+	} else {
+		frequency = calibration[(int)((targetAirSpeed/MAXAIRSPEED)*100)];
+	}
+	//printf("%d\n", targetAirSpeed * area);
+
+	if (!setFrequency((uint16_t) frequency)) {
+		ret += 1;
+	}
+	return ret;
+}
+
+/*
+ * function to calculate airvelocity
+ * params: pressure
+ * returns velocity
+ */
+float Fan::getAirVelocity(float pressure) {
+	return (pressure * area) / 1.205;
+
+}
+
+void Fan::setFlowPoint(int point, int fl) {
+	if (point == 0) {
+		maxFlow = fl;
+		flowLimit = MAXAIRFLOW / (float) fl;
+	} else {
+		calibration[point] = fl;
+	}
+}
+
+void Fan::setAutoMode(bool mo) {
+	autoMode = mo;
 }
 
 /*

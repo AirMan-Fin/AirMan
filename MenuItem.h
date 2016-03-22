@@ -15,6 +15,8 @@ public:
 
 	std::vector<MenuItem *> mm;
 
+	bool isEnd;
+	bool isStart;
 	unsigned int place;
 	int timer;
 

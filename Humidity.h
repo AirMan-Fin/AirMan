@@ -19,7 +19,7 @@ public:
 	/*
 	* creates new analogport object
 	*/
-	Humidity(int);
+	Humidity(I2C*);
 
 	/*
 	* returns pressure value

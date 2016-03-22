@@ -5,6 +5,9 @@ void Interface::readButtons() {
 		if (button[a]->read()) {
 			butPressed[a] = 1;
 		}
+		if (button[a]->isPressed()) {
+			butPressed[a] = 1;
+		}
 	}
 }
 void Interface::handle(key k) {
@@ -12,14 +15,15 @@ void Interface::handle(key k) {
 	menuHandler->display();
 }
 
-Interface::Interface(Room * r, Clock *c, float * temp, int* er, bool * erro, int8_t *modbus, int rs, int en, int d4, int d5, int d6, int d7) {
+Interface::Interface(Room * r, Clock *c, float * temp, float *humi, bool * er,
+		int8_t *modbus, int rs, int en, int d4, int d5, int d6, int d7) {
 
 	room = r;
 
-	butPressed[0]=0;
-	butPressed[1]=0;
-	butPressed[2]=0;
-	butPressed[3]=1;
+	butPressed[0] = 0;
+	butPressed[1] = 0;
+	butPressed[2] = 0;
+	butPressed[3] = 1;
 	lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
 	//room = r;
 
@@ -28,21 +32,23 @@ Interface::Interface(Room * r, Clock *c, float * temp, int* er, bool * erro, int
 	/*
 	 * creating all required menus
 	 */
-	main = new MainMenu(room,"Main Menu");
-	settingsMenu = new SettingsMenu(room,"Settings");
-	roomMenu = new RoomMenu(room,"Room Setting");
-	dataMenu = new DataMenu(room,"Data", c, temp, er);
+	main = new MainMenu(room, "Main Menu");
+	settingsMenu = new SettingsMenu(room, "Settings");
+	roomMenu = new RoomMenu(room, "Room Setting");
+	dataMenu = new DataMenu(room, "Data", c, temp, humi, er);
 
-	settingsClockMenu = new SettingsClockMenu(room,"Clock", c);
-	settingsErrorMenu = new SettingsErrorMenu(room,"Error messages:", erro);
-	settingsModbusMenu = new SettingsModbusMenu(room,"Modbus reset:", modbus);
+	settingsClockMenu = new SettingsClockMenu(room, "Clock", c);
+	settingsErrorMenu = new SettingsErrorMenu(room, "Error messages:", er);
+	settingsModbusMenu = new SettingsModbusMenu(room, "Modbus reset:", modbus);
 
 	roomSpaceMenu = new RoomSpaceMenu(room, "Space", 10, 0, 99999);
-	roomTypeMenu = new RoomTypeMenu(room,"Type", 0, 0, 3);
-	roomTempMenu = new RoomTempMenu(room,"t.Temp", 20, 16, 28, 0.5);
-	roomHeatRecoverMenu = new RoomHeatRecoverMenu(room,"Heat Recover", 0, 0, 1);
-	roomWindowsMenu = new RoomWindowsMenu(room,"Outer walls", 1, 0, 4);
-	roomSetupMenu = new RoomSetupMenu(room,"Setup", roomSpaceMenu, roomTypeMenu, roomTempMenu, roomWindowsMenu, roomHeatRecoverMenu);
+	roomTypeMenu = new RoomTypeMenu(room, "Type", 0, 0, 3);
+	roomTempMenu = new RoomTempMenu(room, "t.Temp", 20, 17, 24, 0.5);
+	roomHeatRecoverMenu = new RoomHeatRecoverMenu(room, "Heat Recover", 0, 0,
+			1);
+	roomWindowsMenu = new RoomWindowsMenu(room, "Outer walls", 1, 0, 4);
+	roomSetupMenu = new RoomSetupMenu(room, "Setup", roomSpaceMenu,
+			roomTypeMenu, roomTempMenu, roomWindowsMenu, roomHeatRecoverMenu);
 
 	/*
 	 * initializing all menus
@@ -64,14 +70,14 @@ Interface::Interface(Room * r, Clock *c, float * temp, int* er, bool * erro, int
 	roomTempMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
 			lcd);
 	roomSetupMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
-				lcd);
+			lcd);
 
 	settingsClockMenu->init(menuHandler->getpCurrent(),
 			menuHandler->getpVector(), lcd);
 	settingsErrorMenu->init(menuHandler->getpCurrent(),
 			menuHandler->getpVector(), lcd);
 	settingsModbusMenu->init(menuHandler->getpCurrent(),
-				menuHandler->getpVector(), lcd);
+			menuHandler->getpVector(), lcd);
 
 	/*
 	 * add starting menu
@@ -135,5 +141,8 @@ void Interface::update() {
 
 void Interface::tick() {
 	menuHandler->tick();
+	for (int a = 0; a < 4; a++) {
+		button[a]->tick();
+	}
 }
 

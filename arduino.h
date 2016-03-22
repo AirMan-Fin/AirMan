@@ -50,8 +50,13 @@ class Button {
 private:
 	int pin;
 	int prevState;
+	bool state;
+	int count;
 public:
-	Button(int);bool read();
+	Button(int);
+	bool read();
+	bool isPressed();
+	void tick();
 };
 
 static volatile bool adcdone = false;
@@ -62,7 +67,17 @@ private:
 public:
 	AnalogPort(int);
 	int read();
+
 };
+
+class PWMOutput {
+private:
+	int pin;
+public:
+	PWMOutput(int);
+	int write(uint8_t);
+};
+
 
 template<typename T> std::string toStr(T t) {
 	std::stringstream ss;

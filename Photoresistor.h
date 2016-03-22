@@ -3,18 +3,18 @@
 
 using namespace std;
 
-//#include "arduino.h"
+#include "arduino.h"
 #include <iostream>
 #include <algorithm>
 
 class Photoresistor {
 private:
-	//AnalogPort *sensor;
+	AnalogPort *sensor;
 	int counter;
 
-	int photoArray[10];
+	uint8_t photoArray[10];
 	int photoIndex;
-	int resistorArray[144];
+	uint8_t resistorArray[144];
 	int resistorIndex;
 
 	int upperAverage;
@@ -28,7 +28,7 @@ public:
 	Photoresistor(int);
 
 	bool getLightState();
-	bool update(float *);
+	bool update();
 	void measure();
 
 };

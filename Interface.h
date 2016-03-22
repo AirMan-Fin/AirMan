@@ -9,6 +9,7 @@
 #include "EndMenu.h"
 #include "Clock.h"
 #include <string>
+#include <cstdio>
 
 class MainMenu: public MenuItem {
 private:
@@ -36,11 +37,19 @@ public:
 		//printf((mm[place]->name).c_str());
 		//printf("\n");
 		lcd->print(mm[place]->name);
+		if (isEnd) {
+			lcd->setCursor(15, 0);
+			lcd->write(126);
+		}
+		if (isStart) {
+			lcd->setCursor(15, 1);
+			lcd->write(127);
+		}
 	}
 
 	void tick() {
 		timer++;
-		if (timer > 10) {
+		if (timer > 100) {
 			timer = 0;
 			place = 0;
 			MenuItem::ok();
@@ -52,21 +61,26 @@ public:
 class DataMenu: public MenuItem {
 private:
 	float *temp;
-	int * err;
+	float *humi;
+	bool * err;
 	Clock * clock;
-	int value;bool modState;
+	int value;
+	bool modState;
+	uint8_t timer2;
 
 public:
-	DataMenu(Room *r, std::string nam, Clock *c, float *t, int * er) {
+	DataMenu(Room *r, std::string nam, Clock *c, float *t, float *h,
+	bool * er) {
 		room = r;
 		name = nam;
 		clock = c;
 		temp = t;
+		humi = h;
 		timer = 0;
 		value = 0;
 		err = er;
+		timer2=0;
 		modState = 0;
-
 	}
 
 	void ok() {
@@ -78,11 +92,12 @@ public:
 	void up() {
 		if (!modState) {
 			if (timer > 0) {
-				room->setTemperatureValues(room->getTemperatureValue() + 0.5);
+				if (room->getTemperatureValue() < 24)
+					room->setTemperatureValues(
+							room->getTemperatureValue() + 0.5);
 			}
-			timer = 3;
+			timer = 30;
 		}
-
 		else {
 			if (value < 6)
 				value++;
@@ -91,9 +106,11 @@ public:
 	void down() {
 		if (!modState) {
 			if (timer > 0) {
-				room->setTemperatureValues(room->getTemperatureValue() - 0.5);
+				if (room->getTemperatureValue() > 17)
+					room->setTemperatureValues(
+							room->getTemperatureValue() - 0.5);
 			}
-			timer = 3;
+			timer = 30;
 		} else {
 			if (value > 0)
 				value--;
@@ -108,8 +125,6 @@ public:
 
 	/*
 	 * basic data display
-	 * temp    time
-	 * 23.2    15.42
 	 */
 	void display() {
 		if (modState) {
@@ -120,22 +135,20 @@ public:
 			lcd->print(value);
 		} else {
 			lcd->clear();
-			lcd->print("temp    time  ");
-			if (*(err) == 0)
-				lcd->print("ok");
-			else
-				lcd->print("ER");
-			lcd->setCursor(0, 1);
-			if (timer == 0)
-				lcd->print(*temp, 1);
+			int a=*temp;
+
+			if (timer == 0)   ///////////temperature printing
+				lcd->print((*temp), 1);
 			else {
-				lcd->print("-");
+				lcd->print(":");
 				lcd->print(room->getTemperatureValue(), 1);
 				//printf("%3.2f\n",room->getTemperatureValue());
 			}
-			lcd->setCursor(5, 1);
+			lcd->setCursor(5, 0);
 			lcd->print("C");
-			lcd->setCursor(8, 1);
+
+			lcd->setCursor(8, 0); ////////clock printing
+
 			if (clock->hour < 10)
 				lcd->print("0");
 			lcd->print(clock->hour);
@@ -144,15 +157,30 @@ public:
 				lcd->print("0");
 			lcd->print(clock->min);
 
-			if (*(err) != 0) {
-				lcd->setCursor(15, 1);
-				lcd->print(*(err));
+			lcd->setCursor(0, 1); ////////humidity printing
+			lcd->print((*humi)*100, 1);
+			lcd->setCursor(5, 1);
+			lcd->print("%");
+
+			///////////////////////7 ///// error printing
+			for (int a = 0; a < 8; a++) {
+				if (err[a]) {
+					lcd->setCursor(8, 1);
+					lcd->print("ERROR ");
+
+					lcd->print(a);
+				}
 			}
 		}
 	}
 
 	void tick() {
-		display();
+		timer2++;
+		if(timer2>=50){
+			timer2=0;
+			display();
+		}
+
 		if (timer > 0)
 			timer--;
 	}
@@ -171,6 +199,14 @@ public:
 	void display() {
 		func();
 		lcd->print(mm[place]->name);
+		if (isEnd) {
+			lcd->setCursor(15, 0);
+			lcd->write(126);
+		}
+		if (isStart) {
+			lcd->setCursor(15, 1);
+			lcd->write(127);
+		}
 	}
 };
 
@@ -186,6 +222,14 @@ public:
 	void display() {
 		func();
 		lcd->print(mm[place]->name);
+		if (isEnd) {
+			lcd->setCursor(15, 0);
+			lcd->write(126);
+		}
+		if (isStart) {
+			lcd->setCursor(15, 1);
+			lcd->write(127);
+		}
 	}
 
 };
@@ -745,8 +789,9 @@ public:
 	 * creates required menu instances
 	 * creates lcd and room instances
 	 */
-	Interface(Room * r, Clock * c, float * temp, int * er, bool * erro,int8_t * modbus, int rs =
-			8, int en = 9, int d4 = 10, int d5 = 11, int d6 = 12, int d7 = 13);
+	Interface(Room * r, Clock * c, float * temp, float *humi,
+	bool * er, int8_t * modbus, int rs = 8, int en = 9, int d4 = 10,
+			int d5 = 11, int d6 = 12, int d7 = 13);
 	~Interface();
 
 	/*

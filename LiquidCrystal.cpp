@@ -328,21 +328,34 @@ int LiquidCrystal::print(int s) {
 	return print(toStr(s).c_str());
 }
 
+/*
 int LiquidCrystal::print(float s, int ll) {
 	int ret = 0;
 	std::string str = toStr((int) s);
-	std::string str2 = toStr(s);
-	int len = str.length();
-	//print(str);
-	//write('.');
-	for(int a=0; a<len+ll+1 ; a++){
+	int ss=s*1000;
+	std::string str2 = toStr(ss);
+	int len = str2.length();
+	print(str);
+	write('.');
+	for(int a=0; a<ll ; a++){
 		if(str2[a]=='\0')
 			break;
 		write(str2[a]);
 	}
-
 	return len;
+}*/
 
+int LiquidCrystal::print(float s, int ll) {
+	int ret = 0;
+	std::string str = toStr(s);
+	std::string str2= toStr((int)s);
+	int len = str2.length();
+	for(int a=0; a<len+ll+1 ; a++){
+		if(str[a]=='\0')
+			break;
+		write(str[a]);
+	}
+	return len;
 }
 
 int LiquidCrystal::print(const char *s) {

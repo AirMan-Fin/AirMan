@@ -8,10 +8,10 @@
 #include "Humidity.h"
 #include <cstdio>
 
-Humidity::Humidity(int a) {
+Humidity::Humidity(I2C *ii) {
 
-	i2c = new I2C(0, 100000);
-	Otemp[0] = 0xF1;
+	i2c = ii;
+
 
 }
 
@@ -27,7 +27,7 @@ bool Humidity::getValue(float * res, float * res2) {
 	ok = i2c->transaction(0x27, Otemp, (uint32_t) 0, Itemp, (uint32_t) 4);
 
 	float luku = (Itemp[0] & 0b00111111) << 8 | Itemp[1];
-	humiValue = (luku / 16386) * 100;
+	humiValue = (luku / 16386);
 
 	float luku2 = ((Itemp[2] << 8) | Itemp[3]) >> 2;
 	tempValue = (luku2 / 16386) * 165 - 40;

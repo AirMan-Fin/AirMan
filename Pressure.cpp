@@ -6,12 +6,13 @@
  */
 
 #include "Pressure.h"
-#define SCALE_FACTOR (1/60)
+#define SCALE_FACTOR (240)
 
-Pressure::Pressure(int a) {
+Pressure::Pressure(I2C *ii) {
 
-	i2c = new I2C(0, 100000);
+	i2c=ii;
 	Otemp[0] = 0xF1;
+
 
 }
 
@@ -23,11 +24,14 @@ Pressure::Pressure(int a) {
 bool Pressure::getValue(float * sss) {
 	bool ret = 1;
 
+	ret = i2c->transaction(0x40, Otemp, (uint32_t) 1, Itemp, (uint32_t) 0);
+	delay(1);
 	ret = i2c->transaction(0x40, Otemp, (uint32_t) 0, Itemp, (uint32_t) 3);
-	float luku = Itemp[0] << 8 | Itemp[1];
 
-	luku = (luku / SCALE_FACTOR);
-	value = luku * 0.95;
+
+	value = (int16_t) Itemp[0] << 8 | Itemp[1];
+	//printf("%3.2f \n",value);
+	value = (value / SCALE_FACTOR) * 0.95;
 	(*sss) = value;
 
 	return ret;

@@ -9,10 +9,12 @@ void MenuItem::init(MenuItem** mm, std::vector<MenuItem*> * mv,
 	current = mm;
 	prevs2 = mv;
 	lcd = l;
-	timer=0;
+	timer = 0;
 }
 MenuItem::MenuItem() {
 	place = 0;
+	isEnd=0;
+	isStart=1;
 }
 
 void MenuItem::addMenuitem(MenuItem *mmm) {
@@ -20,15 +22,26 @@ void MenuItem::addMenuitem(MenuItem *mmm) {
 }
 
 void MenuItem::up() {
-	if (place < mm.size() - 1) {
-		place++;
+	if (place > 0) {
+		place--;
+		if (place > 0) {
+			isEnd = 0;
+		} else {
+			isEnd = 1;
+		}
 	}
+
 	timer = 0;
 }
 ;
 void MenuItem::down() {
-	if (place > 0) {
-		place--;
+	if (place < mm.size() - 1) {
+		place++;
+		if (place < mm.size() - 1) {
+			isStart = 0;
+		} else {
+			isStart = 1;
+		}
 	}
 	timer = 0;
 }
@@ -66,7 +79,7 @@ void MenuItem::setCurrent(MenuItem *c) {
 
 void MenuItem::tick() {
 	timer++;
-	if (timer > 60) {
+	if (timer > 600) {
 		timer = 0;
 		MenuItem::back();
 		(*current)->display();

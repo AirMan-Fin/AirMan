@@ -4,11 +4,12 @@
 
 #include "arduino.h"
 #include "I2C.h"
+#include "cstdio"
 
 class Pressure {
 private:
 
-	int value;
+	float value;
 	I2C* i2c;
 	uint8_t Itemp[3];
 	uint8_t Otemp[3];
@@ -17,7 +18,7 @@ public:
 	/*
 	 * creates new analogport object
 	 */
-	Pressure(int);
+	Pressure(I2C *);
 
 	/*
 	 * returns pressure value

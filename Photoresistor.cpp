@@ -1,7 +1,7 @@
 #include "Photoresistor.h"
 
 Photoresistor::Photoresistor(int a) {
-	//sensor = new AnalogPort(a);
+	sensor = new AnalogPort(a);
 	isLightOn = 0;
 	threshold = 0;
 	counter = 0;
@@ -27,7 +27,7 @@ void Photoresistor::measure() {
 	if (counter > 60) {
 		counter = 0;
 
-		//photoArray[photoIndex] = sensor->read();
+		photoArray[photoIndex] = sensor->read();
 		photoIndex++;
 
 		if (photoIndex == 9) {
@@ -46,7 +46,7 @@ void Photoresistor::measure() {
 		if (resistorIndex == 143) {
 			resistorIndex = 0;
 
-			sort(begin(resistorArray), end(resistorArray));
+			//sort(begin(resistorArray), end(resistorArray));
 
 			int temp3 = 0;
 			for (int j = 143; j > 100; j--) {
@@ -68,16 +68,18 @@ bool Photoresistor::getLightState(){
 
 	threshold = upperAverage - lowerAverage;
 	threshold = threshold * 0.15;
-
-	if (sensor->read() - upperAverage < threshold || upperAverage - sensor->read() > threshold){
-		return 1;
+	if(threshold<0){
+		threshold=-threshold;
 	}
 
-	if (sensor->read() - lowerAverage < threshold || lowerAverage - sensor->read() > threshold){
+	if (sensor->read() - lowerAverage < threshold && lowerAverage - sensor->read() < threshold){
+		return 1;
+	}
+	else{
 		return 0;
 	}
 }
 
-bool Photoresistor::update(float * res){
-	return 0;
+bool Photoresistor::update(){
+	measure();
 }
