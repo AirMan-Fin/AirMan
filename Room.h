@@ -3,29 +3,33 @@
 
 #include "arduino.h"
 #include "Temperature.h"
+#include "Eeprom.h"
+#define testMode
+#define areaMem 10// 4bytes
+#define heightMem 14// 2bytes
+#define outerwallMem 16// byte
+#define recoveryMem 17 //byte
+#define roomTypeMem 18 //byte
 
-/*
- * !!!!!!!!!!Things to do!!!!!!!!!!!!
- *
- * >manageAirSupply() where you fine tune you airflow and heating when time passes
- *
- */
+
+
 enum roomType {
 	classRoom = 0, computerLab = 1, auditorium = 2, office = 3,
 };
 
 class Room {
 private:
+	Eeprom *eeprom;
 	float area=40;
 	float height=3;
 	float space;
-	float MAXairflow=10,MINairflow=0.01;
-	float userHeaterMIN=10;
+	float MAXairflow=0.2,MINairflow=0.01;
+	float userHeaterMIN=17;
 
 	float PeopleDensity=0;
 	float MachineryDensity=0;
 	float Windows;
-	float targetTime=0;//standard heating time 1800 increased if airflow exeeds maximum value
+	float targetTime=1800;//standard heating time 1800 increased if airflow exeeds maximum value
 
 
 	float sensorTemp=0; //sensor
@@ -37,7 +41,7 @@ private:
 
 
 
-	float targetAirTemperature=0;
+	float blowingTemperature=0;
 	float targetAirflow=0;
 	float tMeas=0;
 
@@ -48,9 +52,8 @@ private:
 	float outerWalls = 0;
 	bool recovery = 0;
 	float heaterMAX = 30; //30Celcius
-	float heaterMIN = 10; //30Celcius
 	bool err = true;
-
+	float MAXradiatorTemp=100;
 	/*
 	 * http://www.engineeringtoolbox.com/psychrometric-chart-mollier-d_27.html
 	 * temperature*humidity
@@ -67,11 +70,11 @@ private:
 	void getHeatLoss();
 public:
 
-	Room(int floor = 40, float height1 = 2.5, float temp = 21.00,
+	Room(Eeprom *e, int floor = 40, float height1 = 2.5, float temp = 21.00,
 			roomType type = classRoom, int outer = 0, bool reco =0);
 
 
-	bool update(float Tmp = 21.0, int mon = 1);
+	bool update(float Tmp = 21.0, int mon = 1, float humidity1=0);
 
 	int setCubicValues(float floor = 0, float height1 = 0);// sets cubics
 	void setRoomtype(roomType);//sets the rooom type classRoom etc.
