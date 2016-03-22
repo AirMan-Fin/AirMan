@@ -42,7 +42,7 @@
 
 #define airDensity 1.205 //kg/m^3
 #define specificHeat 1.005//kJ(kg/K)
-#define peopleMultiplier 80//watts according to Ari Hokkanen http://www.engineeringtoolbox.com/metabolic-heat-persons-d_706.html
+#define peopleMultiplier 80//watts according to Ari Hokkanen but 120 according to http://www.engineeringtoolbox.com/metabolic-heat-persons-d_706.html
 #define machineryMultiplier 0//watts only servers etc. affects http://www.engineeringtoolbox.com/heat-gain-equipment-d_1668.html
 #define windowMultiplier //watts couldn't figure out how much windows actually produce
 #define recoveryEfficiency 0.5 // precent how much recovery unit saves energy
@@ -50,11 +50,14 @@
 #define standardHeatingTime 1800 //sec to reach desire temperature
 #define optimalHumidity 0.5 //optimal humidity is between 45-55%
 
-int mollier[7][10] { { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, { 5, 7, 8, 9, 10, 11, 13,
-		14, 15, 17 }, { 10, 12, 14, 16, 18, 20, 22, 24, 26, 28 }, { 15, 18, 21,
-		24, 27, 30, 33, 35, 38, 41 },
-		{ 20, 24, 28, 32, 36, 40, 44, 48, 52, 56 }, { 25, 30, 35, 40, 45, 50,
-				55, 60, 65, 70 }, { 30, 36, 42, 48, 54, 60, 66, 72, 78, 84 } };
+int mollier[7][10] {
+		{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
+		{ 5, 7, 8, 9, 10, 11, 13, 14, 15, 17 },
+		{ 10, 12, 14, 16, 18, 20, 22, 24, 26, 28 },
+		{ 15, 18, 21, 24, 27, 30, 33, 35, 38, 41 },
+		{ 20, 24, 28, 32, 36, 40, 44, 48, 52, 56 },
+		{ 25, 30, 35, 40, 45, 50, 55, 60, 65, 70 },
+		{ 30, 36, 42, 48, 54, 60, 66, 72, 78, 84 } };
 
 Room::Room(Eeprom *e, int floor, float height1, float temp, roomType type,
 		int outer, bool reco) {
@@ -301,9 +304,12 @@ void Room::getHeatLoss() {
 	 */
 	//heatloss= (heatloss/time)/(airDensity* /* m^3/s*/specificHeat);//heatloss per second
 }
-void Room::savingPower() {
-	targetTime = targetTime * 6;//sets the target time to reach desired temperature to 3h
+
+void Room::setPowerSave(bool b) {
+	if(b){
+		targetTime = targetTime *6;//sets the target time to reach desired temperature to 3h
 	PeopleDensity = 0;
+	}
 }
 
 /*
@@ -363,9 +369,6 @@ void Room::setTemperatureValues(float desiredTemp) {//sets the desired temperatu
 void Room::setBoost(float hours) {
 	boost = hours * 360;
 }
-void Room::setSensorTemp(float indtmp) {//sets the sensor temperature(sensor)
-	sensorTemp = indtmp;
-}
 void Room::setRecovery(bool reco) {			//do you have recovery unit
 	recovery = reco;
 #ifndef testMode
@@ -378,15 +381,6 @@ void Room::setOuterWalls(float outw) {			//how many outer walls
 	eeprom->writeNumber(outerwallMem, outerWalls, 1);
 #endif
 }
-void Room::setHumidity(float humm) {
-	humidity = humm;
-}
-void Room::setMAXairflow(float flow) {
-	MAXairflow = flow;
-}
-void Room::setMINairflow(float flow) {
-	MINairflow = flow;
-}
 float Room::getSpaceValue() {
 	return space;
 }
@@ -396,12 +390,27 @@ float Room::getHeigthValue() {
 roomType Room::getRoomtype() {
 	return room;
 }
-float Room::getTemperatureValue() {			//desired temperature value
-	return temperature;
-}
+/*
+ * returns true if there is an recovery unit
+ */
 bool Room::getRecovery() {
 	return recovery;
 }
+/*
+ * returns te amount of outerwalls
+ */
 int Room::getOuterWalls() {
 	return outerWalls;
+}
+/*
+ * returns the current airflow
+ */
+float getAirflow(){
+	return targetAirflow;
+}
+/*
+ * returns the temperature of incoming air
+ */
+float getBlowingTemp(){
+	return blowingTemperature;
 }
