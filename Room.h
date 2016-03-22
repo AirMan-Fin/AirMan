@@ -66,8 +66,10 @@ private:
 
 	float getTempDiff(float, int);
 	void getAirSupplyTemp();
-	void getAirflow();
+	void calculateAirflow();
 	void getHeatLoss();
+	bool  getTargetEnergy();//calculates energy needed to heat room
+	void trimmer();
 public:
 
 	Room(Eeprom *e, int floor = 40, float height1 = 2.5, float temp = 21.00,
@@ -87,16 +89,18 @@ public:
 	void setMAXairflow(float);
 	void setMINairflow(float);
 
-	void savingPower();
-	bool  getTargetEnergy();//calculates energy needed to heat room
+	void setPowerSave(bool b);
 
-	void trimmer();
+
+
 	float getSpaceValue();//returns space
 	float getHeigthValue();//returns height
 	roomType getRoomtype();//returns roomType
 	float getTemperatureValue();//returns desired temperature
 	bool getRecovery();//returns if there is an recovery unit
 	int getOuterWalls();// returns the amount of outer walls
+	float getAirflow();
+	float getBlowingTemp();
 
 };
 

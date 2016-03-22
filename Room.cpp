@@ -97,7 +97,7 @@ bool Room::update(float Tmp, int mon, float humidity1) {
 	setSensorTemp(Tmp);
 	getTempDiff(Tmp, mon); //calculates temperature difference between outside and inside
 	getHeatLoss(); //calculate energy room produces/loses
-	getAirflow(); //calculate needed airflow to chance room air (people, space)
+	calculateAirflow(); //calculate needed airflow to chance room air (people, space)
 
 	err = getTargetEnergy(); //if we need to increase / decrease temperature, calculate air temperature needed for that, then time to do that with current known airflow
 
@@ -191,7 +191,7 @@ void Room::trimmer() { //fine tune function
  *
  * Function returns m3/h
  */
-void Room::getAirflow() {
+void Room::calculateAirflow() {
 
 	//float humidityDifference = humidity-optimalHumidity;//calculate humidity difference
 	airflow = space / targetTime; // put it in a airFlow function and turn it to m3/s
@@ -405,12 +405,12 @@ int Room::getOuterWalls() {
 /*
  * returns the current airflow
  */
-float getAirflow(){
+float Room::getAirflow(){
 	return targetAirflow;
 }
 /*
  * returns the temperature of incoming air
  */
-float getBlowingTemp(){
+float Room::getBlowingTemp(){
 	return blowingTemperature;
 }
