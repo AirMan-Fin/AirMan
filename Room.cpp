@@ -154,7 +154,7 @@ void Room::trimmer() { //fine tune function
 		}
 		if(targetAirflow < MINairflow){
 			trimmerMultiplier= MINairflow/targetAirflow;
-			targetAirflow*trimmerMultiplier;
+			targetAirflow*=trimmerMultiplier;
 			targetTime*=trimmerMultiplier;
 		}
 
@@ -369,6 +369,9 @@ void Room::setTemperatureValues(float desiredTemp) {//sets the desired temperatu
 void Room::setBoost(float hours) {
 	boost = hours * 360;
 }
+void Room::setSensorTemp(float tmp){
+	sensorTemp=tmp;
+}
 void Room::setRecovery(bool reco) {			//do you have recovery unit
 	recovery = reco;
 #ifndef testMode
@@ -413,4 +416,7 @@ float Room::getAirflow(){
  */
 float Room::getBlowingTemp(){
 	return blowingTemperature;
+}
+float Room::getTemperatureValue(){
+return temperature;
 }
