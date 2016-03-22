@@ -38,6 +38,7 @@ private:
 
 	float heatTotal=0; //energy balance for room
 	float boost = 0;//for how many hours boost
+	bool powersave=0;
 
 
 

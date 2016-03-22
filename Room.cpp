@@ -101,6 +101,7 @@ bool Room::update(float Tmp, int mon, float humidity1) {
 
 	err = getTargetEnergy(); //if we need to increase / decrease temperature, calculate air temperature needed for that, then time to do that with current known airflow
 
+
 	trimmer();
 
 	printf("targetAirflow= %3.6f blowingTemperature= %3.2f \n ", targetAirflow,
@@ -156,6 +157,9 @@ void Room::trimmer() { //fine tune function
 			trimmerMultiplier= MINairflow/targetAirflow;
 			targetAirflow*=trimmerMultiplier;
 			targetTime*=trimmerMultiplier;
+		}
+		if(powersave){
+			targetAirflow*=0.7;
 		}
 
 
@@ -236,7 +240,7 @@ bool Room::getTargetEnergy() {
 	//float energyInRoom = (space*specificHeat*sensorTemp*airDensity);
 	//energy= energyInRoom+energy;
 	energy = energy - heatTotal;
-	int aika = targetTime;
+	int aika = standardHeatingTime;
 	//	do{
 
 	celcius = (energy / aika) / (airDensity * targetAirflow * specificHeat);
@@ -306,9 +310,15 @@ void Room::getHeatLoss() {
 }
 
 void Room::setPowerSave(bool b) {
-	if(b){
-		targetTime = targetTime *6;//sets the target time to reach desired temperature to 3h
-	PeopleDensity = 0;
+	b=powersave;
+	if(boost>0){
+		powersave = false;
+	}
+	if(powersave){
+		PeopleDensity = 0;
+	}
+	else{
+		setRoomtype(room);
 	}
 }
 
