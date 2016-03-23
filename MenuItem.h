@@ -50,9 +50,15 @@ public:
 	virtual void back();
 
 	/*
+	 * virtual method called when current is chanced
+	 */
+	virtual void enterMenu();
+
+	/*
 	 * default method for displaying info
 	 */
 	virtual void display();
+
 	/*
 	 * default help method for displaying first row of lcd
 	 *
@@ -62,7 +68,7 @@ public:
 	void func();
 
 	/*
-	 * default tick method, after 30 seconds, returns back
+	 * default tick method, after 60 seconds, returns back
 	 */
 	virtual void tick();
 

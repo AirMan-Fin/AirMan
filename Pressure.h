@@ -10,6 +10,7 @@ class Pressure {
 private:
 
 	float value;
+	float edValue;
 	I2C* i2c;
 	uint8_t Itemp[3];
 	uint8_t Otemp[3];

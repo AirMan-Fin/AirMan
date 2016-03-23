@@ -34,7 +34,7 @@ Interface::Interface(Room * r, Clock *c, float * temp, float *humi, bool * er,
 	 */
 	main = new MainMenu(room, "Main Menu");
 	settingsMenu = new SettingsMenu(room, "Settings");
-	roomMenu = new RoomMenu(room, "Room Setting");
+	roomMenu = new RoomMenu(room, "Room setup");
 	dataMenu = new DataMenu(room, "Data", c, temp, humi, er);
 
 	settingsClockMenu = new SettingsClockMenu(room, "Clock", c);
@@ -146,3 +146,62 @@ void Interface::tick() {
 	}
 }
 
+/*
+ * params: 1 is up, 2 down
+ */
+void drawArrow(LiquidCrystal &lcd, int object, int column, int row) {
+	const uint8_t upArrow[8][8] = { { 0x04, 0x0E, 0x1F, 0x04, 0x04, 0x00, 0x00,
+			0x00 }, { 0x04, 0x0E, 0x1F, 0x04, 0x04, 0x00, 0x00, 0x00 }, { 0x04,
+			0x0E, 0x1F, 0x04, 0x04, 0x00, 0x00, 0x00 }, { 0x04, 0x0E, 0x1F,
+			0x04, 0x04, 0x00, 0x00, 0x00 } };
+	const uint8_t downArrow[8][8] = {
+			{ 0x0, 0x0, 0x0, 0x4, 0x4, 0x1f, 0xe, 0x4 }, { 0x0, 0x0, 0x0, 0x4,
+					0x4, 0x1f, 0xe, 0x4 }, { 0x0, 0x0, 0x0, 0x4, 0x4, 0x1f, 0xe,
+					0x4 }, { 0x0, 0x0, 0x0, 0x4, 0x4, 0x1f, 0xe, 0x4 }
+
+	};
+	uint8_t length = 1;
+	uint8_t size;
+	int value = 1;
+
+	if (length < 5)
+		length = 5;
+	switch (object) {
+	case 1:	//up arrow
+		for (int i = 0; i < 8; i++) {
+			lcd.createChar(i, (uint8_t *) upArrow[i]);
+		}
+		break;
+	case 2:	//up arrow
+		for (int i = 0; i < 8; i++) {
+			lcd.createChar(i, (uint8_t *) downArrow[i]);
+		}
+		break;
+
+	}
+	size = length / 5 + (length % 5 > 0 ? 1 : 0);
+
+	if (value < 0)
+		length = 0;
+	if (value > length)
+		value = length;
+	else {
+		uint8_t full = value / 5;
+		uint8_t rest = value % 5;
+		uint8_t count = size;
+		lcd.setCursor(column, row); // move cursor back to visible area
+		while (count) {
+			if (full > 0) {
+				lcd.write(4);
+				full--;
+			} else if (rest > 0) {
+				lcd.write(rest);
+				rest = 0;
+			} else {
+				lcd.write(32);
+			}
+			count--;
+		}
+	}
+	lcd.setCursor(0, 0);
+}

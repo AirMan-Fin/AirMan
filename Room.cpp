@@ -93,6 +93,7 @@ bool Room::update(float Tmp, int mon, float humidity1) {
 	if (month != mon) { // changes heater min air temperature
 		month = mon;
 	}
+	targetTime=1800;
 
 	setSensorTemp(Tmp);
 	getTempDiff(Tmp, mon); //calculates temperature difference between outside and inside
@@ -104,9 +105,8 @@ bool Room::update(float Tmp, int mon, float humidity1) {
 
 	trimmer();
 
-	printf("targetAirflow= %3.6f blowingTemperature= %3.2f \n ", targetAirflow,
-			blowingTemperature);
-	printf("targetTime= %3.2f \n", targetTime);
+	printf("Air= %3.4f Temp= %3.1f, Time= %3.1\n ", targetAirflow,
+			blowingTemperature, targetTime);
 
 	//getAirSupplyTemp();  //adjust airflow and time to be more user friendly
 
@@ -125,7 +125,7 @@ void Room::trimmer() { //fine tune function
 		ok++;
 		if (blowingTemperature < userHeaterMIN) {
 			trimmerMultiplier = ((sensorTemp - blowingTemperature)- (temperature - userHeaterMIN))/ (sensorTemp - blowingTemperature);
-			blowingTemperature *= trimmerMultiplier;//assignment would just result to code visiting trimmer just every other time
+			blowingTemperature =userHeaterMIN;//assignment would just result to code visiting trimmer just every other time
 			targetAirflow *= trimmerMultiplier;
 			targetTime*=(1-trimmerMultiplier);
 
@@ -159,7 +159,7 @@ void Room::trimmer() { //fine tune function
 			targetTime*=trimmerMultiplier;
 		}
 		if(powersave){
-			targetAirflow*=0.7;
+			targetAirflow*=0.99;
 		}
 
 
@@ -215,9 +215,6 @@ void Room::calculateAirflow() {
 		case office:
 			airflow = airflow * officeBoost;
 			break;
-		}
-		if (airflow > MAXairflow) {
-			targetTime = targetTime * (airflow / MAXairflow); //increase time in relation to airflow
 		}
 		boost -= 10;
 	}

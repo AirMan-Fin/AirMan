@@ -112,7 +112,7 @@ bool Button::isPressed() {
 	bool ret = 0;
 	if (count > 6) {
 		ret = digitalRead((uint8_t) pin);
-		count=3;
+		count = 6;
 	}
 
 	//printf("d:%d\n",now);
@@ -120,10 +120,10 @@ bool Button::isPressed() {
 }
 
 void Button::tick() {
-	if (digitalRead((uint8_t)pin) && count <8)
+	if (digitalRead((uint8_t) pin) && count < 8)
 		count++;
 	else
-		count=0;
+		count = 0;
 }
 
 extern "C" {
@@ -203,11 +203,12 @@ int AnalogPort::read() {
 	return d0;
 }
 
-PWMOutput::PWMOutput(int p) {
-
+Output::Output(int p) {
+	pin = p;
+	pinMode(p, 1);
 }
 
-int PWMOutput::write(uint8_t value) {
-
+void Output::write(bool b) {
+	digitalWrite(pin,b);
 }
 

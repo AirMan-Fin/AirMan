@@ -70,12 +70,12 @@ public:
 
 };
 
-class PWMOutput {
+class Output {
 private:
 	int pin;
 public:
-	PWMOutput(int);
-	int write(uint8_t);
+	Output(int);
+	void write(bool);
 };
 
 

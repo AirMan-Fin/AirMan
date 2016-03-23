@@ -19,8 +19,9 @@
  * max cubicmeter per second fan can provide -> 500 hz frequency
  */
 #define MAXAIRFLOW 0.2
-#define MAXAIRSPEED 1.5
+#define MAXAIRSPEED 1.8
 #define AIRSPEEDACCURACY 0.1
+#define AUTOMODEDEFAULTSPEED 7
 
 
 class Fan {
@@ -47,7 +48,7 @@ private:
 	/*
 	 * sends frequency to modbus
 	 */
-	bool setFrequency( uint16_t);
+	bool setFrequency( float);
 public:
 	Fan(Millis *m ,int s = 0);
 
@@ -60,7 +61,7 @@ public:
 	 * makes calculations and sets airflow
 	 * params: airflow, pressure in ducts
 	 */
-	int setAirFlow(int, float);
+	int setAirFlow(float, float);
 
 	/*
 	 * sets calibration point for airflow

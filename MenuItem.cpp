@@ -24,10 +24,9 @@ void MenuItem::addMenuitem(MenuItem *mmm) {
 void MenuItem::up() {
 	if (place > 0) {
 		place--;
-		if (place > 0) {
-			isEnd = 0;
-		} else {
-			isEnd = 1;
+		isEnd=0;
+		if (place == 0) {
+			isStart = 1;
 		}
 	}
 
@@ -37,11 +36,13 @@ void MenuItem::up() {
 void MenuItem::down() {
 	if (place < mm.size() - 1) {
 		place++;
-		if (place < mm.size() - 1) {
-			isStart = 0;
-		} else {
-			isStart = 1;
+		isStart=0;
+		if(place == mm.size()-1){
+			isEnd=1;
 		}
+	}
+	else{
+
 	}
 	timer = 0;
 }
@@ -75,6 +76,11 @@ void MenuItem::func() {
 void MenuItem::setCurrent(MenuItem *c) {
 	prevs2->push_back(*current);
 	(*current) = c;
+	(*current)->enterMenu();
+}
+
+void MenuItem::enterMenu(){
+	timer=0;
 }
 
 void MenuItem::tick() {

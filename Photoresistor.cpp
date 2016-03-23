@@ -24,10 +24,13 @@ void Photoresistor::measure() {
 
 	counter++;
 
-	if (counter > 60) {
+	if (counter > 2) {
 		counter = 0;
 
 		photoArray[photoIndex] = sensor->read();
+
+		printf("raw: %d\n",sensor->read());
+
 		photoIndex++;
 
 		if (photoIndex == 9) {
@@ -46,7 +49,7 @@ void Photoresistor::measure() {
 		if (resistorIndex == 143) {
 			resistorIndex = 0;
 
-			//sort(begin(resistorArray), end(resistorArray));
+			sort(resistorArray, resistorArray + 144);
 
 			int temp3 = 0;
 			for (int j = 143; j > 100; j--) {

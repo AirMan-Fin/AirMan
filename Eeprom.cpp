@@ -22,9 +22,7 @@ bool Eeprom::write(int address, uint8_t *data, int amount) {
 
 bool Eeprom::writeNumber(int address, float data, int amount) {
 	uint8_t buff[amount];
-	while (data / 1 != 0) {
-		data *= 10;
-	}
+	data *= 1000;
 	int dd = data;
 	for (int a = amount - 1; a >= 0; a--) {
 		buff[a] = dd >> (8 * a);

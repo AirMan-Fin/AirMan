@@ -1,9 +1,4 @@
-/*
- * Fan.cpp
- *
- *  Created on: 1.3.2016
- *      Author: Haggis
- */
+
 
 #include "Fan.h"
 
@@ -20,18 +15,20 @@ Fan::Fan(Millis *m, int fanspeed) {
 	delay(1000);
 	node->writeSingleRegister(0, 0x047F);
 	delay(1000);
+	area=0.2;
+	frequency = AUTOMODEDEFAULTSPEED;
 
 }
 
 void Fan::update(float pres) {
 
 	currentAirSpeed = getAirVelocity(pres);
-	if (currentAirSpeed - targetAirSpeed < AIRSPEEDACCURACY
-			&& targetAirSpeed - currentAirSpeed < AIRSPEEDACCURACY) {
+	if (!(currentAirSpeed - targetAirSpeed < AIRSPEEDACCURACY
+			&& targetAirSpeed - currentAirSpeed < AIRSPEEDACCURACY)) {
 		if (currentAirSpeed < targetAirSpeed) {
-			frequency += 10;
+			frequency += 0.1;
 		} else {
-			frequency -= 10;
+			frequency -= 0.1;
 		}
 	} else {
 		calibration[((int) frequency) / 5] = (uint8_t) (currentAirSpeed * 100);
@@ -40,19 +37,17 @@ void Fan::update(float pres) {
 	setFrequency(frequency);
 }
 
-bool Fan::setFrequency(uint16_t freq) {
+bool Fan::setFrequency(float freq) {
 	bool ok = 0;
-
-	uint8_t result = node->writeSingleRegister(1, freq);
-
+	uint8_t result = node->writeSingleRegister(1, (uint16_t)(freq*400));
 	if (result == node->ku8MBSuccess) {
 		ok = 1;
 	}
-
 	return ok;
 }
 
-int Fan::setAirFlow(int flow, float pres) {
+int Fan::setAirFlow(float flow, float pres) {
+	printf("setA: %3.2f, %3.2f \n",flow,pres);
 	bool ret = 0;
 	if (autoMode) {
 		currentAirSpeed = getAirVelocity(pres);
@@ -61,7 +56,6 @@ int Fan::setAirFlow(int flow, float pres) {
 			ret += 10;
 			targetAirSpeed = MAXAIRSPEED;
 		}
-		frequency = (targetAirSpeed * area) / (currentAirSpeed * area) * 500;
 	} else {
 		frequency = calibration[(int)((targetAirSpeed/MAXAIRSPEED)*100)];
 	}
@@ -79,7 +73,7 @@ int Fan::setAirFlow(int flow, float pres) {
  * returns velocity
  */
 float Fan::getAirVelocity(float pressure) {
-	return (pressure * area) / 1.205;
+	return ((pressure * area) / 1.205);
 
 }
 

@@ -11,6 +11,8 @@
 #include <string>
 #include <cstdio>
 
+void drawArrow(LiquidCrystal &lcd, int object, int column, int row);
+
 class MainMenu: public MenuItem {
 private:
 
@@ -38,12 +40,10 @@ public:
 		//printf("\n");
 		lcd->print(mm[place]->name);
 		if (isEnd) {
-			lcd->setCursor(15, 0);
-			lcd->write(126);
+			drawArrow(*lcd, 1, 15, 0);
 		}
 		if (isStart) {
-			lcd->setCursor(15, 1);
-			lcd->write(127);
+			drawArrow(*lcd, 2, 15, 1);
 		}
 	}
 
@@ -61,12 +61,11 @@ public:
 class DataMenu: public MenuItem {
 private:
 	float *temp;
-	float *humi;
-	bool * err;
+	float *humi;bool * err;
 	Clock * clock;
-	int value;
-	bool modState;
+	int value;bool modState;
 	uint8_t timer2;
+	uint8_t timer3;
 
 public:
 	DataMenu(Room *r, std::string nam, Clock *c, float *t, float *h,
@@ -79,26 +78,31 @@ public:
 		timer = 0;
 		value = 0;
 		err = er;
-		timer2=0;
+		timer2 = 0;
+		timer3 = 0;
 		modState = 0;
 	}
 
 	void ok() {
-		modState = !modState;
-		if (modState) {
-			room->setBoost(value);
+		if (timer3 == 0) {
+			modState = !modState;
+			timer3 = 50;
+			if (modState) {
+				room->setBoost(value);
+				value = 0;
+				timer3 = 10;
+			}
 		}
 	}
 	void up() {
 		if (!modState) {
 			if (timer > 0) {
-				if (room->getTemperatureValue() < 24)
+				if (room->getTemperatureValue() < 28)
 					room->setTemperatureValues(
 							room->getTemperatureValue() + 0.5);
 			}
 			timer = 30;
-		}
-		else {
+		} else {
 			if (value < 6)
 				value++;
 		}
@@ -135,7 +139,7 @@ public:
 			lcd->print(value);
 		} else {
 			lcd->clear();
-			int a=*temp;
+			int a = *temp;
 
 			if (timer == 0)   ///////////temperature printing
 				lcd->print((*temp), 1);
@@ -158,7 +162,7 @@ public:
 			lcd->print(clock->min);
 
 			lcd->setCursor(0, 1); ////////humidity printing
-			lcd->print((*humi)*100, 1);
+			lcd->print((*humi) * 100, 1);
 			lcd->setCursor(5, 1);
 			lcd->print("%");
 
@@ -176,8 +180,13 @@ public:
 
 	void tick() {
 		timer2++;
-		if(timer2>=50){
-			timer2=0;
+		if (timer3 > 0)
+			timer3--;
+		if (timer3 == 0)
+			modState = 0;
+
+		if (timer2 >= 50) {
+			timer2 = 0;
 			display();
 		}
 
@@ -200,12 +209,10 @@ public:
 		func();
 		lcd->print(mm[place]->name);
 		if (isEnd) {
-			lcd->setCursor(15, 0);
-			lcd->write(126);
+			drawArrow(*lcd, 1, 15, 0);
 		}
 		if (isStart) {
-			lcd->setCursor(15, 1);
-			lcd->write(127);
+			drawArrow(*lcd, 2, 15, 1);
 		}
 	}
 };
@@ -223,13 +230,11 @@ public:
 		func();
 		lcd->print(mm[place]->name);
 		if (isEnd) {
-			lcd->setCursor(15, 0);
-			lcd->write(126);
-		}
-		if (isStart) {
-			lcd->setCursor(15, 1);
-			lcd->write(127);
-		}
+					drawArrow(*lcd,1,15,0);
+				}
+				if (isStart) {
+					drawArrow(*lcd,2,15,1);
+				}
 	}
 
 };
@@ -499,6 +504,11 @@ public:
 		curr[5] = reco = r;
 	}
 
+	void enterMenu() {
+		timer = 0;
+		state = 6;
+	}
+
 	void ok() {
 		if (state != 6 && state != 0) {
 			curr[state]->ok();
@@ -528,6 +538,8 @@ public:
 	void display() {
 		if (state == 6) {
 			func();
+			lcd->setCursor(0, 1);
+			lcd->print("ok->setup room");
 		} else {
 			curr[state]->display();
 		}
