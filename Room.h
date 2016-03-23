@@ -71,6 +71,8 @@ private:
 	void getHeatLoss();
 	bool  getTargetEnergy();//calculates energy needed to heat room
 	void trimmer();
+	void setHumidity(float hum);
+	void setSensorTemp(float);//sets the temperature sensor value to "temperature"
 public:
 
 	Room(Eeprom *e, int floor = 40, float height1 = 2.5, float temp = 21.00,
@@ -84,8 +86,6 @@ public:
 	void setTemperatureValues(float);//sets the desired temperature
 	void setRecovery(bool);//is there a recovery unit
 	void setOuterWalls(float);//sets the amount of outer walls
-	void setSensorTemp(float);//sets the temperature sensor value to "temperature"
-	void setHumidity(float);//sets humidity sensor value to "humidity"
 	void setBoost(float);
 	void setMAXairflow(float);
 	void setMINairflow(float);
