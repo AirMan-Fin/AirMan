@@ -90,7 +90,7 @@ Room::Room(Eeprom *e, int floor, float height1, float temp, roomType type,
 #endif
 }
 bool Room::update(float Tmp, int mon, float humidity1) {
-	if (month != mon) { // chances heater min air temperature
+	if (month != mon) { // changes heater min air temperature
 		month = mon;
 	}
 
@@ -125,7 +125,7 @@ void Room::trimmer() { //fine tune function
 		ok++;
 		if (blowingTemperature < userHeaterMIN) {
 			trimmerMultiplier = ((sensorTemp - blowingTemperature)- (temperature - userHeaterMIN))/ (sensorTemp - blowingTemperature);
-			blowingTemperature = userHeaterMIN;
+			blowingTemperature *= trimmerMultiplier;//assignment would just result to code visiting trimmer just every other time
 			targetAirflow *= trimmerMultiplier;
 			targetTime*=(1-trimmerMultiplier);
 
@@ -308,7 +308,9 @@ void Room::getHeatLoss() {
 	 */
 	//heatloss= (heatloss/time)/(airDensity* /* m^3/s*/specificHeat);//heatloss per second
 }
-
+void Room::setHumidity(float hum){
+	humidity=hum;
+}
 void Room::setPowerSave(bool b) {
 	b=powersave;
 	if(boost>0){
