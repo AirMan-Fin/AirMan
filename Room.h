@@ -25,6 +25,8 @@ private:
 	float space;
 	float MAXairflow=0.2,MINairflow=0.01;
 	float userHeaterMIN=17;
+	float userHeaterMAX=70;
+	float userAirflow=0;
 
 	float PeopleDensity=0;
 	float MachineryDensity=0;
@@ -52,9 +54,9 @@ private:
 	float wallsize = 0;
 	float outerWalls = 0;
 	bool recovery = 0;
-	float heaterMAX = 30; //30Celcius
+
 	bool err = true;
-	float MAXradiatorTemp=100;
+	bool B_userAirflow=0;
 	/*
 	 * http://www.engineeringtoolbox.com/psychrometric-chart-mollier-d_27.html
 	 * temperature*humidity
@@ -91,6 +93,7 @@ public:
 	void setMINairflow(float);
 
 	void setPowerSave(bool b);
+	void setUserAirflow(float user);
 
 
 

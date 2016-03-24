@@ -98,8 +98,8 @@ bool Room::update(float Tmp, int mon, float humidity1) {
 	setSensorTemp(Tmp);
 	getTempDiff(Tmp, mon); //calculates temperature difference between outside and inside
 	getHeatLoss(); //calculate energy room produces/loses
-	calculateAirflow(); //calculate needed airflow to chance room air (people, space)
 
+	calculateAirflow(); //calculate needed airflow to chance room air (people, space)
 	err = getTargetEnergy(); //if we need to increase / decrease temperature, calculate air temperature needed for that, then time to do that with current known airflow
 
 
@@ -127,20 +127,22 @@ void Room::trimmer() { //fine tune function
 			trimmerMultiplier = ((sensorTemp - blowingTemperature)- (temperature - userHeaterMIN))/ (sensorTemp - blowingTemperature);
 			blowingTemperature =userHeaterMIN;//assignment would just result to code visiting trimmer just every other time
 			targetAirflow *= trimmerMultiplier;
-			targetTime*=(1-trimmerMultiplier);
-
-			/*if (ok > 3) {
-				blowingTemperature += (sensorTemp - blowingTemperature) * (trimmerMultiplier);
-				targetAirflow *= (trimmerMultiplier + 1);
-				printf("added target airflow \n");
-			}*/
+			targetTime*=trimmerMultiplier;//
 
 		}
+		if(blowingTemperature > userHeaterMAX){
+				trimmerMultiplier=userHeaterMAX/blowingTemperature;
+				blowingTemperature=userHeaterMAX;
+				targetAirflow*=trimmerMultiplier;
+				targetTime*=trimmerMultiplier;
+
+
+			}
 		if (MAXairflow < targetAirflow) {
 
 			trimmerMultiplier = targetAirflow / MAXairflow;
 			targetAirflow = MAXairflow;
-			if ((blowingTemperature * trimmerMultiplier) < MAXradiatorTemp) {
+			if ((blowingTemperature * trimmerMultiplier) < userHeaterMAX) {
 				blowingTemperature *= trimmerMultiplier;
 			}
 			else{
@@ -176,31 +178,23 @@ void Room::trimmer() { //fine tune function
 }
 
 /*
- * http://www.engineeringtoolbox.com/design-ventilation-systems-d_121.html
- * If air is used for heating, the needed air flow rate may be expressed as  qh = Hh / (ρ cp (ts - tr))
- * heat transfer coefficient for air is ~0.0257(W/m2K)
- * thermal conductivity of plexiglass is 0.17mass units per 0.19 (or -0.19)meters per 0.2 (or -0.2)seconds at 21,85 celcius (or at 295 Kelvin)
- * For offices with average insulation and lighting, 2/3 occupants and 3/4 personal computers and a photocopier, the following calculations will suffice:
- * Heat load (BTU) = Length (ft.) x Width (ft.) x Height (ft.) x 4
- * "ideal humidity is betveen 45-55%" http://www.brighthubengineering.com/hvac/81719-best-indoor-humidity-range-for-people-books-and-electronics/
- *
- * Heat load (BTU) = Length (m) x Width (m) x Height (m) x 141
- * For every additional occupant add 500 BTU.
- * function needs to know:
- * heat of air supply ts
- * heat of indoor air tr
- * Specific heat air = standard at 18-25 celcius ~1.005
- * volume of indoor air(heatload) Hh <--this value needs to be tweeked if we want to specify the room type
- * density of air is pretty standard at 18-25 celcius ~1.205
- *
- * Function returns m3/h
+ * returns m3/h
+ * effect of boost is adde
+ * d here
  */
 void Room::calculateAirflow() {
 
+	if(!userAirflow){
 	//float humidityDifference = humidity-optimalHumidity;//calculate humidity difference
 	airflow = space / targetTime; // put it in a airFlow function and turn it to m3/s
+	}
+	else{
+		airflow=userAirflow;
+
+	}
 
 	airflow = airflow * ((humidity / 5) + 1); //calculate the effect of humidity raise airflow if too much humidity etc.
+
 	if (boost > 0) {
 		switch (room) {
 		case classRoom:
@@ -370,6 +364,13 @@ void Room::setRoomtype(roomType r) {//sets and defines room type and it's proper
 		//MachineryDensity= area / officeMachineryDensity;
 		Windows = outerWalls;
 		break;
+	}
+}
+void Room::setUserAirflow(float user){
+	B_userAirflow=1;
+	userAirflow=user;
+	if(user=0){
+		B_userAirflow=0;
 	}
 }
 void Room::setTemperatureValues(float desiredTemp) {//sets the desired temperature value
