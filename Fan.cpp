@@ -2,7 +2,7 @@
 
 #include "Fan.h"
 
-Fan::Fan(Millis *m, int fanspeed) {
+Fan::Fan(Millis *m, Eeprom * ee, int fanspeed) {
 	for (int a = 0; a < 100; a++) {
 		calibration[a]=0;
 	}
@@ -15,9 +15,14 @@ Fan::Fan(Millis *m, int fanspeed) {
 	delay(1000);
 	node->writeSingleRegister(0, 0x047F);
 	delay(1000);
-	area=0.2;
+
 	frequency = AUTOMODEDEFAULTSPEED;
 
+	eeprom=ee;
+	uint8_t buff[2];
+	eeprom->read(pipeAreaMem,buff,1);
+	area=buff[0];
+	area *=0.01;
 }
 
 void Fan::update(float pres) {
@@ -47,7 +52,7 @@ bool Fan::setFrequency(float freq) {
 }
 
 int Fan::setAirFlow(float flow, float pres) {
-	printf("setA: %3.2f, %3.2f \n",flow,pres);
+	//printf("setA: %3.2f, %3.2f \n",flow,pres);
 	bool ret = 0;
 	if (autoMode) {
 		currentAirSpeed = getAirVelocity(pres);
@@ -90,9 +95,21 @@ void Fan::setAutoMode(bool mo) {
 	autoMode = mo;
 }
 
-/*
- *
- *0, 0x047F
- *
- */
+
+void Fan::setPipeArea(float ar){
+	area=ar;
+	uint8_t buff[2];
+	buff[0]=(uint8_t)area*100;
+	eeprom->write(pipeAreaMem, buff, 1);
+}
+
+float Fan::getPipeArea(){
+	return area;
+}
+
+void Fan::reset(bool b){
+	if(b){
+		setPipeArea(defaultPipeArea);
+	}
+}
 

@@ -29,7 +29,7 @@ void Photoresistor::measure() {
 
 		photoArray[photoIndex] = sensor->read();
 
-		printf("raw: %d\n",sensor->read());
+		//printf("raw: %d\n",sensor->read());
 
 		photoIndex++;
 

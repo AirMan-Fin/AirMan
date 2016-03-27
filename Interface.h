@@ -7,6 +7,7 @@
 #include "MenuHandler.h"
 #include "MenuItem.h"
 #include "EndMenu.h"
+#include "Fan.h"
 #include "Clock.h"
 #include <string>
 #include <cstdio>
@@ -167,13 +168,18 @@ public:
 			lcd->print("%");
 
 			///////////////////////7 ///// error printing
+			bool noErrors = 1;
 			for (int a = 0; a < 8; a++) {
 				if (err[a]) {
 					lcd->setCursor(8, 1);
 					lcd->print("ERROR ");
-
+					noErrors = 0;
 					lcd->print(a);
 				}
+			}
+			if (noErrors) {
+				lcd->setCursor(8, 1);
+				lcd->print("ok");
 			}
 		}
 	}
@@ -230,11 +236,11 @@ public:
 		func();
 		lcd->print(mm[place]->name);
 		if (isEnd) {
-					drawArrow(*lcd,1,15,0);
-				}
-				if (isStart) {
-					drawArrow(*lcd,2,15,1);
-				}
+			drawArrow(*lcd, 1, 15, 0);
+		}
+		if (isStart) {
+			drawArrow(*lcd, 2, 15, 1);
+		}
 	}
 
 };
@@ -250,6 +256,10 @@ public:
 		max = max2;
 		name = nam;
 		intervall = inter;
+	}
+
+	void enterMenu() {
+		value = temp = room->getTemperatureValue();
 	}
 
 	void ok() {
@@ -285,6 +295,12 @@ public:
 		value2 = 3;
 		max2 = 10;
 		min2 = 0;
+	}
+
+	void enterMenu() {
+		value = temp = room->getAreaValue();
+		value2 = temp2 = room->getHeigthValue();
+		modState2 = 0;
 	}
 
 	void ok() {
@@ -331,7 +347,7 @@ public:
 		func();
 		if (modState2 == 0) {
 			lcd->print("cubic: ");
-			lcd->print(temp + temp2);
+			lcd->print(room->getSpaceValue());
 			lcd->print(" m^3");
 		}
 		if (modState2 == 1) {
@@ -369,11 +385,15 @@ public:
 	RoomTypeMenu(Room *r, std::string nam, int t, int min2 = 0, int max2 = 100,
 			int inter = 1) {
 		room = r;
-		value = temp = t;
 		min = min2;
 		max = max2;
 		name = nam;
 		intervall = inter;
+		value = temp = room->getRoomtype();
+	}
+
+	void enterMenu() {
+		value = temp = room->getRoomtype();
 	}
 
 	void ok() {
@@ -417,11 +437,15 @@ public:
 	RoomWindowsMenu(Room *r, std::string nam, int t, int min2 = 0, int max2 =
 			100, int inter = 1) {
 		room = r;
-		value = temp = t;
 		min = min2;
 		max = max2;
 		name = nam;
 		intervall = inter;
+		value = temp = room->getOuterWalls();
+	}
+
+	void enterMenu() {
+		value = temp = room->getOuterWalls();
 	}
 
 	void ok() {
@@ -442,11 +466,15 @@ public:
 	RoomHeatRecoverMenu(Room *r, std::string nam, int t, int min2 = 0,
 			int max2 = 100, int inter = 1) {
 		room = r;
-		value = temp = t;
 		min = min2;
 		max = max2;
 		name = nam;
 		intervall = inter;
+		value = temp = room->getRecovery();
+	}
+
+	void enterMenu() {
+		value = temp = room->getRecovery();
 	}
 
 	void ok() {
@@ -478,6 +506,76 @@ public:
 
 	}
 
+};
+
+class RoomDefaultMenu: public EndMenu {
+
+public:
+	RoomDefaultMenu(Room *r, std::string nam, int t, int min2 = 0, int max2 =
+			100, int inter = 1) {
+		room = r;
+		value = temp = t;
+		min = min2;
+		max = max2;
+		name = nam;
+		intervall = inter;
+	}
+
+	void enterMenu() {
+		value = temp = room->getUserBlow();
+
+	}
+
+	void ok() {
+		if (modState) {
+			value = temp;
+			room->setUserAirflow(value);
+		} else {
+
+		}
+		modState = !modState;
+	}
+};
+
+class RoomPipeAreaMenu: public EndMenu {
+	Fan * fan;
+
+public:
+	RoomPipeAreaMenu(Room *r, std::string nam, Fan * f, float min2 = 0,
+			float max2 = 2.5, float inter = 0.05) {
+		room = r;
+		value = temp = fan->getPipeArea();
+		min = min2;
+		max = max2;
+		name = nam;
+		intervall = inter;
+		fan = f;
+	}
+
+	void enterMenu() {
+		value = temp = fan->getPipeArea();
+	}
+	void ok() {
+		if (modState) {
+			value = temp;
+			fan->setPipeArea(value);
+		} else {
+
+		}
+		modState = !modState;
+	}
+	void display() {
+		func();
+		lcd->print(text);
+		lcd->print(":");
+		if (modState)
+			lcd->print("[");
+		else
+			lcd->print(" ");
+		lcd->print(temp, 2);
+		if (modState)
+			lcd->print("]");
+	}
 };
 
 class RoomSetupMenu: public EndMenu {
@@ -518,6 +616,8 @@ public:
 			state = 0;
 		}
 		if (state != 6) {
+			if (state != 1)
+				curr[state]->enterMenu();
 			curr[state]->ok();
 		}
 	}
@@ -558,31 +658,47 @@ public:
 
 	void display() {
 		func();
-		if (errors[0])
-			lcd->print(1);
+		bool jj = 0;
+		if (errors[0]) {
+			lcd->print(0);
+			jj = 1;
+		}
 		lcd->setCursor(3, 1);
-		if (errors[1])
-			lcd->print(2);
+		if (errors[1]) {
+			lcd->print(1);
+			jj = 1;
+		}
 		lcd->setCursor(5, 1);
-		if (errors[2])
-			lcd->print(3);
+		if (errors[2]) {
+			jj = 1;
+			lcd->print(2);
+		}
 		lcd->setCursor(7, 1);
-		if (errors[3])
-			lcd->print(4);
+		if (errors[3]) {
+			lcd->print(3);
+			jj = 1;
+		}
 		lcd->setCursor(9, 1);
-		if (errors[4])
-			lcd->print(5);
+		if (errors[4]) {
+			lcd->print(4);
+			jj = 1;
+		}
 		lcd->setCursor(11, 1);
-		if (errors[5])
-			lcd->print(6);
+		if (errors[5]) {
+			lcd->print(5);
+			jj = 1;
+		}
 		lcd->setCursor(13, 1);
+
+		if (!jj) {
+			lcd->print("No errors");
+		}
 	}
 
 };
 
 class SettingsModbusMenu: public EndMenu {
 private:
-	bool * errors;
 	int8_t * pt;
 public:
 	SettingsModbusMenu(Room *r, std::string nam, int8_t * nn) {
@@ -604,6 +720,44 @@ public:
 			lcd->print("Reset modbus?");
 		} else {
 			lcd->print("Press ok to reset");
+		}
+
+	}
+
+};
+
+class SettingsDisableMenu: public EndMenu {
+private:
+
+	bool * pt;
+public:
+	SettingsDisableMenu(Room *r, std::string nam, bool * nn) {
+		room = r;
+		name = nam;
+		pt = nn;
+	}
+
+	void ok() {
+		if (modState) {
+			(*pt) = !(*pt);
+		}
+		modState = !modState;
+	}
+
+	void display() {
+		func();
+		if (modState) {
+			if (*pt) {
+				lcd->print("Enable");
+			} else
+				lcd->print("Disable");
+			lcd->print(" pow. save?");
+		} else {
+			lcd->print("Ok -> ");
+			if (*pt) {
+				lcd->print("enable");
+			} else
+				lcd->print("disable");
 		}
 
 	}
@@ -700,70 +854,87 @@ public:
 	void display() {
 		func();
 		if (modState2 == 1)
-			lcd->print("{");
+			//lcd->print("{");
+			lcd->write(126);
 		if (clock->hour < 10)
 			lcd->print("0");
 		lcd->print(clock->hour);
 		lcd->print(".");
 
 		if (modState2 == 2)
-			lcd->print("{");
+			//lcd->print("{");
+			lcd->write(126);
 		if (clock->min < 10)
 			lcd->print("0");
 		lcd->print(clock->min);
 		lcd->print(" ");
 
 		if (modState2 == 3)
-			lcd->print("{");
+			//lcd->print("{");
+			lcd->write(126);
 		if (clock->day < 10)
 			lcd->print("0");
 		lcd->print(clock->day);
 		lcd->print(".");
 
 		if (modState2 == 4)
-			lcd->print("{");
+			lcd->write(126);
 		if (clock->month < 10)
 			lcd->print("0");
 		lcd->print(clock->month);
 		lcd->print(".");
 
 		if (modState2 == 5)
-			lcd->print("{");
+			lcd->write(126);
 		lcd->print(clock->year % 100);
-
-		if (clock->modState)
-			lcd->print("}");
 
 	}
 };
 
-class SettingsGuideMenu: public EndMenu {
+class SettingsResetMenu: public EndMenu {
 private:
-
-	const int guideLength = 4;
+	Room * room;
+	Fan * fan;
+	bool reseted;
 public:
-	SettingsGuideMenu(Room *r, std::string nam) {
+	SettingsResetMenu(Room *r, Fan * f, std::string nam) {
 		room = r;
+		fan = f;
 		name = nam;
 		value = 0;
-
+		reseted=0;
+	}
+	void enterMenu() {
+		modState = 0;
+		reseted=0;
+	}
+	void ok() {
+		if (!reseted) {
+			if (modState) {
+				room->reset(1);
+				fan->reset(1);
+				reseted=1;
+			}
+			modState = !modState;
+		}
 	}
 	void up() {
-		if (value < guideLength - 1) {
-			value++;
 
-		}
 	}
 	void down() {
-		if (value > 0) {
-			value--;
-		}
+
 	}
-	void diplay() {
-		lcd->clear();
-		//lcd->print(guide[(int)value]);
-		lcd->setCursor(0, 1);
-		//lcd->print(guide[(int)value+1]);
+	void display() {
+		func();
+		if (reseted) {
+			lcd->print("All restored");
+		} else {
+			if (!modState) {
+				lcd->print("Restore settings?");
+			} else {
+				lcd->print("Ok -> reset");
+			}
+		}
 	}
 };
 
@@ -784,6 +955,8 @@ private:
 	SettingsClockMenu *settingsClockMenu;
 	SettingsErrorMenu *settingsErrorMenu;
 	SettingsModbusMenu *settingsModbusMenu;
+	SettingsDisableMenu *settingsDisableMenu;
+	SettingsResetMenu *settingsResetMenu;
 
 	RoomSpaceMenu *roomSpaceMenu; //area, height
 	RoomTypeMenu *roomTypeMenu; // room mtype
@@ -791,6 +964,8 @@ private:
 	RoomWindowsMenu *roomWindowsMenu; //outer walls
 	RoomHeatRecoverMenu *roomHeatRecoverMenu; //Heat recovering unit
 	RoomSetupMenu *roomSetupMenu; //Setups all other room settings
+	RoomDefaultMenu *roomDefaultMenu; //sets default airflow
+	RoomPipeAreaMenu *roomPipeAreaMenu; //sets default airflows
 
 	void readButtons();
 	void handle(key);
@@ -801,8 +976,8 @@ public:
 	 * creates required menu instances
 	 * creates lcd and room instances
 	 */
-	Interface(Room * r, Clock * c, float * temp, float *humi,
-	bool * er, int8_t * modbus, int rs = 8, int en = 9, int d4 = 10,
+	Interface(Room * r, Clock * c, float * temp, float *humi, Fan *fan,
+	bool * er, bool *dis, int8_t * modbus, int rs = 8, int en = 9, int d4 = 10,
 			int d5 = 11, int d6 = 12, int d7 = 13);
 	~Interface();
 

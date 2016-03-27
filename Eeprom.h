@@ -2,6 +2,7 @@
 #define EEPROM_H
 
 #include "board.h"
+#include <cstdio>
 
 class Eeprom{
 private:

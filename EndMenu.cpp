@@ -22,7 +22,7 @@ EndMenu::EndMenu() {
 	}
 	void EndMenu::down() {
 		if (modState) {
-			if (temp > min)
+			if (temp > (int)min)
 			temp-=intervall;
 		}
 	}
@@ -37,12 +37,12 @@ EndMenu::EndMenu() {
 		lcd->print(text);
 		lcd->print(":");
 		if (modState)
-			lcd->print("{");
+			lcd->print("[");
 		else
 			lcd->print(" ");
 		lcd->print(toStr(temp).c_str());
 		if (modState)
-			lcd->print("}");
+			lcd->print("]");
 
 	}
 

@@ -328,7 +328,7 @@ int LiquidCrystal::print(int s) {
 	return print(toStr(s).c_str());
 }
 
-/*
+
 int LiquidCrystal::print(float s, int ll) {
 	int ret = 0;
 	std::string str = toStr((int) s);
@@ -343,9 +343,9 @@ int LiquidCrystal::print(float s, int ll) {
 		write(str2[a]);
 	}
 	return len;
-}*/
+}
 
-int LiquidCrystal::print(float s, int ll) {
+/*int LiquidCrystal::print(float s, int ll) {
 	int ret = 0;
 	std::string str = toStr(s);
 	std::string str2= toStr((int)s);
@@ -356,7 +356,7 @@ int LiquidCrystal::print(float s, int ll) {
 		write(str[a]);
 	}
 	return len;
-}
+}*/
 
 int LiquidCrystal::print(const char *s) {
 	int len = 0;

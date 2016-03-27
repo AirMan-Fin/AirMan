@@ -14,6 +14,10 @@
 #include "arduino.h"
 #include "ModbusMaster.h"
 #include "cstdio"
+#include "Eeprom.h"
+
+#define pipeAreaMem 26
+#define defaultPipeArea 0.3
 
 /*
  * max cubicmeter per second fan can provide -> 500 hz frequency
@@ -31,6 +35,7 @@ private:
 	float flowLimit;
 	float area;
 	bool autoMode;
+	Eeprom * eeprom;
 
 	float targetAirSpeed;
 	float currentAirSpeed;
@@ -50,7 +55,7 @@ private:
 	 */
 	bool setFrequency( float);
 public:
-	Fan(Millis *m ,int s = 0);
+	Fan(Millis *m ,Eeprom *ee,int s = 0);
 
 	/*
 	 * hearthbeat function
@@ -76,6 +81,14 @@ public:
 	 */
 	void setAutoMode(bool);
 
+	/*
+	 * sets pipe output area
+	 */
+	void setPipeArea(float ar);
+
+	float getPipeArea();
+
+	void reset(bool b=0);
 
 
 

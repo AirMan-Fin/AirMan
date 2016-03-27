@@ -15,7 +15,7 @@ void Interface::handle(key k) {
 	menuHandler->display();
 }
 
-Interface::Interface(Room * r, Clock *c, float * temp, float *humi, bool * er,
+Interface::Interface(Room * r, Clock *c, float * temp, float *humi, Fan * fan, bool * er, bool *dis,
 		int8_t *modbus, int rs, int en, int d4, int d5, int d6, int d7) {
 
 	room = r;
@@ -38,16 +38,20 @@ Interface::Interface(Room * r, Clock *c, float * temp, float *humi, bool * er,
 	dataMenu = new DataMenu(room, "Data", c, temp, humi, er);
 
 	settingsClockMenu = new SettingsClockMenu(room, "Clock", c);
-	settingsErrorMenu = new SettingsErrorMenu(room, "Error messages:", er);
-	settingsModbusMenu = new SettingsModbusMenu(room, "Modbus reset:", modbus);
+	settingsErrorMenu = new SettingsErrorMenu(room, "Errors", er);
+	settingsDisableMenu = new SettingsDisableMenu(room, "Dis. pow. save", dis);
+	settingsModbusMenu = new SettingsModbusMenu(room, "Modbus reset", modbus);
+	settingsResetMenu = new SettingsResetMenu(room, fan, "Factory reset" );
 
 	roomSpaceMenu = new RoomSpaceMenu(room, "Space", 10, 0, 99999);
 	roomTypeMenu = new RoomTypeMenu(room, "Type", 0, 0, 3);
-	roomTempMenu = new RoomTempMenu(room, "t.Temp", 20, 17, 24, 0.5);
+	roomTempMenu = new RoomTempMenu(room, "Temperature", 20, 17, 24, 0.5);
+	roomDefaultMenu = new RoomDefaultMenu(room, "Def. airflow", 0, 0, 10, 1);
+	roomPipeAreaMenu = new RoomPipeAreaMenu(room,"Vent area", fan);
 	roomHeatRecoverMenu = new RoomHeatRecoverMenu(room, "Heat Recover", 0, 0,
 			1);
 	roomWindowsMenu = new RoomWindowsMenu(room, "Outer walls", 1, 0, 4);
-	roomSetupMenu = new RoomSetupMenu(room, "Setup", roomSpaceMenu,
+	roomSetupMenu = new RoomSetupMenu(room, "Setup all", roomSpaceMenu,
 			roomTypeMenu, roomTempMenu, roomWindowsMenu, roomHeatRecoverMenu);
 
 	/*
@@ -71,6 +75,10 @@ Interface::Interface(Room * r, Clock *c, float * temp, float *humi, bool * er,
 			lcd);
 	roomSetupMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
 			lcd);
+	roomDefaultMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
+				lcd);
+	roomPipeAreaMenu->init(menuHandler->getpCurrent(), menuHandler->getpVector(),
+					lcd);
 
 	settingsClockMenu->init(menuHandler->getpCurrent(),
 			menuHandler->getpVector(), lcd);
@@ -78,6 +86,10 @@ Interface::Interface(Room * r, Clock *c, float * temp, float *humi, bool * er,
 			menuHandler->getpVector(), lcd);
 	settingsModbusMenu->init(menuHandler->getpCurrent(),
 			menuHandler->getpVector(), lcd);
+	settingsDisableMenu->init(menuHandler->getpCurrent(),
+				menuHandler->getpVector(), lcd);
+	settingsResetMenu->init(menuHandler->getpCurrent(),
+				menuHandler->getpVector(), lcd);
 
 	/*
 	 * add starting menu
@@ -92,20 +104,25 @@ Interface::Interface(Room * r, Clock *c, float * temp, float *humi, bool * er,
 	main->addMenuitem(settingsMenu);
 
 	settingsMenu->addMenuitem(settingsClockMenu);
+	settingsMenu->addMenuitem(settingsDisableMenu);
 	settingsMenu->addMenuitem(settingsErrorMenu);
 	settingsMenu->addMenuitem(settingsModbusMenu);
+	settingsMenu->addMenuitem(settingsResetMenu);
 
 	roomMenu->addMenuitem(roomSetupMenu);
-	roomMenu->addMenuitem(roomSpaceMenu);
 	roomMenu->addMenuitem(roomTempMenu);
+	roomMenu->addMenuitem(roomSpaceMenu);
 	roomMenu->addMenuitem(roomTypeMenu);
 	roomMenu->addMenuitem(roomHeatRecoverMenu);
 	roomMenu->addMenuitem(roomWindowsMenu);
+	roomMenu->addMenuitem(roomDefaultMenu);
+	roomMenu->addMenuitem(roomPipeAreaMenu);
 
 	/*
 	 * first display
 	 */
-	menuHandler->display();
+
+
 }
 
 Interface::~Interface() {
@@ -120,6 +137,7 @@ void Interface::initButtons(int b1, int b2, int b3, int b4) {
 }
 void Interface::lcdBegin(int a, int b) {
 	lcd->begin(16, 2);
+	menuHandler->display();
 }
 
 void Interface::update() {

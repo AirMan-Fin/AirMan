@@ -2,14 +2,22 @@
 #define ROOM_H
 
 #include "arduino.h"
-#include "Temperature.h"
 #include "Eeprom.h"
-#define testMode
+//#define testMode
 #define areaMem 10// 4bytes
-#define heightMem 14// 2bytes
-#define outerwallMem 16// byte
-#define recoveryMem 17 //byte
-#define roomTypeMem 18 //byte
+#define heightMem 16// 2bytes
+#define outerwallMem 18// byte
+#define recoveryMem 20 //byte
+#define roomTypeMem 22 //byte
+#define roomFlowMem 24 //byte
+
+#define defaultArea 40
+#define defaultHeight 3
+#define defaultOuterwalls 0
+#define defaultRecovery 0
+#define defaultRoomtype 0
+#define defaultTemperature 20
+#define defaultFlow 0
 
 
 
@@ -25,8 +33,6 @@ private:
 	float space;
 	float MAXairflow=0.2,MINairflow=0.01;
 	float userHeaterMIN=17;
-	float userHeaterMAX=70;
-	float userAirflow=0;
 
 	float PeopleDensity=0;
 	float MachineryDensity=0;
@@ -41,7 +47,8 @@ private:
 	float heatTotal=0; //energy balance for room
 	float boost = 0;//for how many hours boost
 	bool powersave=0;
-
+	bool B_userAirflow=0;
+	float userAirflow=0;
 
 
 	float blowingTemperature=0;
@@ -54,9 +61,9 @@ private:
 	float wallsize = 0;
 	float outerWalls = 0;
 	bool recovery = 0;
-
+	float heaterMAX = 30; //30Celcius
 	bool err = true;
-	bool B_userAirflow=0;
+	float MAXradiatorTemp=100;
 	/*
 	 * http://www.engineeringtoolbox.com/psychrometric-chart-mollier-d_27.html
 	 * temperature*humidity
@@ -93,11 +100,13 @@ public:
 	void setMINairflow(float);
 
 	void setPowerSave(bool b);
-	void setUserAirflow(float user);
+	void reset(bool b=false);
+	void setUserAirflow(float b);
 
 
 
 	float getSpaceValue();//returns space
+	float getAreaValue();//returns area
 	float getHeigthValue();//returns height
 	roomType getRoomtype();//returns roomType
 	float getTemperatureValue();//returns desired temperature
@@ -105,6 +114,7 @@ public:
 	int getOuterWalls();// returns the amount of outer walls
 	float getAirflow();
 	float getBlowingTemp();
+	float getUserBlow();
 
 };
 

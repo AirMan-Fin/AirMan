@@ -34,7 +34,7 @@ class Millis {
 public:
 	uint32_t mmm;
 	Millis(){
-		mmm=0;
+		mmm=1; // set to one, so all counter won't raise 1st flag
 	}
 	uint32_t millis(){
 		return mmm;

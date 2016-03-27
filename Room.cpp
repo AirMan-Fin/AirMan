@@ -50,63 +50,61 @@
 #define standardHeatingTime 1800 //sec to reach desire temperature
 #define optimalHumidity 0.5 //optimal humidity is between 45-55%
 
-int mollier[7][10] {
-		{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
-		{ 5, 7, 8, 9, 10, 11, 13, 14, 15, 17 },
-		{ 10, 12, 14, 16, 18, 20, 22, 24, 26, 28 },
-		{ 15, 18, 21, 24, 27, 30, 33, 35, 38, 41 },
-		{ 20, 24, 28, 32, 36, 40, 44, 48, 52, 56 },
-		{ 25, 30, 35, 40, 45, 50, 55, 60, 65, 70 },
-		{ 30, 36, 42, 48, 54, 60, 66, 72, 78, 84 } };
-
 Room::Room(Eeprom *e, int floor, float height1, float temp, roomType type,
 		int outer, bool reco) {
 	eeprom = e;
-	setCubicValues(floor, height1); // sets cubics
-	setRoomtype(type); //sets the rooom type classRoom etc.
-	setTemperatureValues(temp); //sets the desired temperature
-	setRecovery(reco); //is there a recovery unit
-	setOuterWalls(outer); //sets the amount of outer walls
 	targetTime = standardHeatingTime;
 #ifndef testMode
 	float tt;
-	uint8_t buff[2];
-	if (eeprom->readAndCombine(areaMem, 4, &tt, 4)) {
-		area = tt;
+	uint8_t buff[4];
+	float tt2;
+	if (eeprom->read(areaMem, buff, 4)) {
+		tt2 = ((buff[0] << 24) | (buff[1] << 16) | (buff[2] << 8) | (buff[3])) * 0.001f;
 	}
 
-	if (eeprom->readAndCombine(heightMem, 2, &tt, 1)) {
-		height = tt;
+	if (eeprom->read(heightMem, buff, 2)) {
+		tt = buff[0];
+		tt += (buff[1]) * 0.1f;
+		setCubicValues(tt2, tt);
 	}
 	if (eeprom->read(recoveryMem, buff)) {
-		recovery = buff[0];
+		setRecovery((bool) buff[0]);
 	}
 	if (eeprom->read(outerwallMem, buff)) {
-		outerWalls = (int) buff[0];
+		setOuterWalls((int) buff[0]);
 	}
 	if (eeprom->read(roomTypeMem, buff)) {
-		room = (roomType) buff[0];
+		setRoomtype((roomType) buff[0]);
 	}
+	if (eeprom->read(roomFlowMem, buff)) {
+		setUserAirflow((float) (buff[0] * 0.01f));
+	}
+#endif
+#ifdef testMode
+	setCubicValues(floor, height1); // sets cubics
+	setRoomtype(type);//sets the rooom type classRoom etc.
+	setTemperatureValues(temp);//sets the desired temperature
+	setRecovery(reco);//is there a recovery unit
+	setOuterWalls(outer);//sets the amount of outer walls
 #endif
 }
 bool Room::update(float Tmp, int mon, float humidity1) {
 	if (month != mon) { // changes heater min air temperature
 		month = mon;
 	}
-	targetTime=1800;
+	targetTime = 1800;
 
 	setSensorTemp(Tmp);
 	getTempDiff(Tmp, mon); //calculates temperature difference between outside and inside
 	getHeatLoss(); //calculate energy room produces/loses
-
 	calculateAirflow(); //calculate needed airflow to chance room air (people, space)
-	err = getTargetEnergy(); //if we need to increase / decrease temperature, calculate air temperature needed for that, then time to do that with current known airflow
 
+	err = getTargetEnergy(); //if we need to increase / decrease temperature, calculate air temperature needed for that, then time to do that with current known airflow
 
 	trimmer();
 
-	printf("Air= %3.4f Temp= %3.1f, Time= %3.1\n ", targetAirflow,
-			blowingTemperature, targetTime);
+	//printf("Air= %3.4f Temp= %3.1f, Time= %3.1\n ", targetAirflow,
+	//	blowingTemperature, targetTime);
 
 	//getAirSupplyTemp();  //adjust airflow and time to be more user friendly
 
@@ -120,50 +118,48 @@ bool Room::update(float Tmp, int mon, float humidity1) {
  */
 void Room::trimmer() { //fine tune function
 	int ok = 0;
-	float trimmerMultiplier=0;
+	float trimmerMultiplier = 0;
 	while (ok < 10) {
 		ok++;
 		if (blowingTemperature < userHeaterMIN) {
-			trimmerMultiplier = ((sensorTemp - blowingTemperature)- (temperature - userHeaterMIN))/ (sensorTemp - blowingTemperature);
-			blowingTemperature =userHeaterMIN;//assignment would just result to code visiting trimmer just every other time
+			trimmerMultiplier = ((sensorTemp - blowingTemperature)
+					- (temperature - userHeaterMIN))
+					/ (sensorTemp - blowingTemperature);
+			blowingTemperature = userHeaterMIN; //assignment would just result to code visiting trimmer just every other time
 			targetAirflow *= trimmerMultiplier;
-			targetTime*=trimmerMultiplier;//
+			targetTime *= (1 - trimmerMultiplier);
+
+			/*if (ok > 3) {
+			 blowingTemperature += (sensorTemp - blowingTemperature) * (trimmerMultiplier);
+			 targetAirflow *= (trimmerMultiplier + 1);
+			 printf("added target airflow \n");
+			 }*/
 
 		}
-		if(blowingTemperature > userHeaterMAX){
-				trimmerMultiplier=userHeaterMAX/blowingTemperature;
-				blowingTemperature=userHeaterMAX;
-				targetAirflow*=trimmerMultiplier;
-				targetTime*=trimmerMultiplier;
-
-
-			}
 		if (MAXairflow < targetAirflow) {
 
 			trimmerMultiplier = targetAirflow / MAXairflow;
 			targetAirflow = MAXairflow;
-			if ((blowingTemperature * trimmerMultiplier) < userHeaterMAX) {
+			if ((blowingTemperature * trimmerMultiplier) < MAXradiatorTemp) {
 				blowingTemperature *= trimmerMultiplier;
-			}
-			else{
-				targetTime*=trimmerMultiplier;
-			}
-		}
-		if(humidity > optimalHumidity){
-			trimmerMultiplier=humidity-optimalHumidity;
-			if (MAXairflow < (targetAirflow*trimmerMultiplier)){
-				targetAirflow*=(1+trimmerMultiplier);
+			} else {
+				targetTime *= trimmerMultiplier;
 			}
 		}
-		if(targetAirflow < MINairflow){
-			trimmerMultiplier= MINairflow/targetAirflow;
-			targetAirflow*=trimmerMultiplier;
-			targetTime*=trimmerMultiplier;
+		if (humidity > optimalHumidity) {
+			trimmerMultiplier = humidity - optimalHumidity;
+			if (MAXairflow < (targetAirflow * trimmerMultiplier)) {
+				targetAirflow *= (1 + trimmerMultiplier);
+			}
 		}
-		if(powersave){
-			targetAirflow*=0.99;
+		if (targetAirflow < MINairflow) {
+			trimmerMultiplier = MINairflow / targetAirflow;
+			targetAirflow *= trimmerMultiplier;
+			targetTime *= trimmerMultiplier;
 		}
-
+		if (powersave) {
+			targetAirflow *= 0.99;
+		}
 
 		/*if(temperature +0,25 >= sensorTemp && sensorTemp <= temperature -0,25){//if you have recieved 100 samples that the air is at same temperature you can lower airflow
 		 tMeas++;
@@ -178,23 +174,36 @@ void Room::trimmer() { //fine tune function
 }
 
 /*
- * returns m3/h
- * effect of boost is adde
- * d here
+ * http://www.engineeringtoolbox.com/design-ventilation-systems-d_121.html
+ * If air is used for heating, the needed air flow rate may be expressed as  qh = Hh / (ρ cp (ts - tr))
+ * heat transfer coefficient for air is ~0.0257(W/m2K)
+ * thermal conductivity of plexiglass is 0.17mass units per 0.19 (or -0.19)meters per 0.2 (or -0.2)seconds at 21,85 celcius (or at 295 Kelvin)
+ * For offices with average insulation and lighting, 2/3 occupants and 3/4 personal computers and a photocopier, the following calculations will suffice:
+ * Heat load (BTU) = Length (ft.) x Width (ft.) x Height (ft.) x 4
+ * "ideal humidity is betveen 45-55%" http://www.brighthubengineering.com/hvac/81719-best-indoor-humidity-range-for-people-books-and-electronics/
+ *
+ * Heat load (BTU) = Length (m) x Width (m) x Height (m) x 141
+ * For every additional occupant add 500 BTU.
+ * function needs to know:
+ * heat of air supply ts
+ * heat of indoor air tr
+ * Specific heat air = standard at 18-25 celcius ~1.005
+ * volume of indoor air(heatload) Hh <--this value needs to be tweeked if we want to specify the room type
+ * density of air is pretty standard at 18-25 celcius ~1.205
+ *
+ * Function returns m3/h
  */
 void Room::calculateAirflow() {
 
-	if(!userAirflow){
-	//float humidityDifference = humidity-optimalHumidity;//calculate humidity difference
-	airflow = space / targetTime; // put it in a airFlow function and turn it to m3/s
-	}
-	else{
-		airflow=userAirflow;
+	if (B_userAirflow) {
+		//float humidityDifference = humidity-optimalHumidity;//calculate humidity difference
+		airflow = space / targetTime; // put it in a airFlow function and turn it to m3/s
+	} else {
+		airflow = userAirflow;
 
 	}
 
 	airflow = airflow * ((humidity / 5) + 1); //calculate the effect of humidity raise airflow if too much humidity etc.
-
 	if (boost > 0) {
 		switch (room) {
 		case classRoom:
@@ -299,18 +308,17 @@ void Room::getHeatLoss() {
 	 */
 	//heatloss= (heatloss/time)/(airDensity* /* m^3/s*/specificHeat);//heatloss per second
 }
-void Room::setHumidity(float hum){
-	humidity=hum;
+void Room::setHumidity(float hum) {
+	humidity = hum;
 }
 void Room::setPowerSave(bool b) {
-	b=powersave;
-	if(boost>0){
+	b = powersave;
+	if (boost > 0) {
 		powersave = false;
 	}
-	if(powersave){
+	if (powersave) {
 		PeopleDensity = 0;
-	}
-	else{
+	} else {
 		setRoomtype(room);
 	}
 }
@@ -329,8 +337,19 @@ int Room::setCubicValues(float floor, float height1) {
 	area = floor;
 	space = area * height;
 #ifndef testMode
-	eeprom->writeNumber(areaMem, area, 4);
-	eeprom->writeNumber(heightMem, height, 2);
+	uint32_t tt = (int)(area*1000);
+	uint8_t buff[4];
+	buff[0] =  tt >> 24;
+	buff[1] = (tt >>16) & 0xff;
+	buff[2] = (tt >> 8) & 0xff;
+	buff[3] = tt & 0xff ;
+
+	eeprom->write(areaMem, buff, 4);
+	tt = (int) height;
+	uint8_t tt2 = (int) ((height - ((int) height)) * 10);
+	buff[0] = tt;
+	buff[1] = tt2;
+	eeprom->write(heightMem, buff, 2);
 #endif
 	return space;
 
@@ -340,7 +359,9 @@ void Room::setRoomtype(roomType r) {//sets and defines room type and it's proper
 
 	room = r;
 #ifndef testMode
-	eeprom->writeNumber(roomTypeMem, room, 1);
+	uint8_t buff[1];
+	buff[0] = (uint8_t) room;
+	eeprom->write(roomTypeMem, buff, 1);
 #endif
 
 	switch (r) {
@@ -366,12 +387,17 @@ void Room::setRoomtype(roomType r) {//sets and defines room type and it's proper
 		break;
 	}
 }
-void Room::setUserAirflow(float user){
-	B_userAirflow=1;
-	userAirflow=user;
-	if(user=0){
-		B_userAirflow=0;
+void Room::setUserAirflow(float user) {
+	B_userAirflow = 1;
+	userAirflow = user / 3600;
+	if (user == 0) {
+		B_userAirflow = 0;
 	}
+#ifndef testMode
+	uint8_t buff[2];
+	buff[0] = (uint8_t) (userAirflow * 100);
+	eeprom->write(roomFlowMem, buff, 1);
+#endif
 }
 void Room::setTemperatureValues(float desiredTemp) {//sets the desired temperature value
 	temperature = desiredTemp;
@@ -379,8 +405,8 @@ void Room::setTemperatureValues(float desiredTemp) {//sets the desired temperatu
 void Room::setBoost(float hours) {
 	boost = hours * 360;
 }
-void Room::setSensorTemp(float tmp){
-	sensorTemp=tmp;
+void Room::setSensorTemp(float tmp) {
+	sensorTemp = tmp;
 }
 void Room::setRecovery(bool reco) {			//do you have recovery unit
 	recovery = reco;
@@ -396,6 +422,9 @@ void Room::setOuterWalls(float outw) {			//how many outer walls
 }
 float Room::getSpaceValue() {
 	return space;
+}
+float Room::getAreaValue() {
+	return area;
 }
 float Room::getHeigthValue() {
 	return height;
@@ -418,15 +447,35 @@ int Room::getOuterWalls() {
 /*
  * returns the current airflow
  */
-float Room::getAirflow(){
+float Room::getAirflow() {
 	return targetAirflow;
+
+}
+/*
+ * return user defined airflow
+ */
+float Room::getUserBlow() {
+	return userAirflow;
 }
 /*
  * returns the temperature of incoming air
  */
-float Room::getBlowingTemp(){
+float Room::getBlowingTemp() {
 	return blowingTemperature;
 }
-float Room::getTemperatureValue(){
-return temperature;
+float Room::getTemperatureValue() {
+	return temperature;
+}
+
+void Room::reset(bool b) {
+	if (b) {
+#ifndef testMode
+		setCubicValues(defaultArea, defaultHeight); // sets cubics
+		setRoomtype((roomType) defaultRoomtype); //sets the rooom type classRoom etc.
+		setTemperatureValues(defaultTemperature); //sets the desired temperature
+		setRecovery(defaultRecovery); //is there a recovery unit
+		setOuterWalls(defaultOuterwalls); //sets the amount of outer walls
+		setUserAirflow(defaultFlow);
+#endif
+	}
 }
