@@ -142,15 +142,15 @@ public:
 			lcd->clear();
 			int a = *temp;
 
-			if (timer == 0)   ///////////temperature printing
+			if (timer == 0) {   ///////////temperature printing
 				lcd->print((*temp), 1);
-			else {
+				lcd->print(" C");
+			} else {
 				lcd->print(":");
 				lcd->print(room->getTemperatureValue(), 1);
+				lcd->print(" C");
 				//printf("%3.2f\n",room->getTemperatureValue());
 			}
-			lcd->setCursor(5, 0);
-			lcd->print("C");
 
 			lcd->setCursor(8, 0); ////////clock printing
 
@@ -544,12 +544,13 @@ public:
 	RoomPipeAreaMenu(Room *r, std::string nam, Fan * f, float min2 = 0,
 			float max2 = 2.5, float inter = 0.05) {
 		room = r;
+		fan = f;
 		value = temp = fan->getPipeArea();
 		min = min2;
 		max = max2;
 		name = nam;
 		intervall = inter;
-		fan = f;
+
 	}
 
 	void enterMenu() {
@@ -894,26 +895,25 @@ public:
 class SettingsResetMenu: public EndMenu {
 private:
 	Room * room;
-	Fan * fan;
-	bool reseted;
+	Fan * fan;bool reseted;
 public:
 	SettingsResetMenu(Room *r, Fan * f, std::string nam) {
 		room = r;
 		fan = f;
 		name = nam;
 		value = 0;
-		reseted=0;
+		reseted = 0;
 	}
 	void enterMenu() {
 		modState = 0;
-		reseted=0;
+		reseted = 0;
 	}
 	void ok() {
 		if (!reseted) {
 			if (modState) {
 				room->reset(1);
 				fan->reset(1);
-				reseted=1;
+				reseted = 1;
 			}
 			modState = !modState;
 		}
@@ -943,6 +943,7 @@ class Interface {
 private:
 	LiquidCrystal *lcd;bool butPressed[4];
 	Room *room;
+	Fan * fan;
 	Button *button[4];
 
 	MenuHandler *menuHandler;

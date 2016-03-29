@@ -15,11 +15,13 @@ void Interface::handle(key k) {
 	menuHandler->display();
 }
 
-Interface::Interface(Room * r, Clock *c, float * temp, float *humi, Fan * fan, bool * er, bool *dis,
+Interface::Interface(Room * r, Clock *c, float * temp, float *humi, Fan * f, bool * er, bool *dis,
 		int8_t *modbus, int rs, int en, int d4, int d5, int d6, int d7) {
 
 	room = r;
-
+	fan=f;
+	fan->reset();
+	fan->getPipeArea();
 	butPressed[0] = 0;
 	butPressed[1] = 0;
 	butPressed[2] = 0;

@@ -21,8 +21,7 @@ Fan::Fan(Millis *m, Eeprom * ee, int fanspeed) {
 	eeprom=ee;
 	uint8_t buff[2];
 	eeprom->read(pipeAreaMem,buff,1);
-	area=buff[0];
-	area *=0.01;
+	setPipeArea(0.2*0.01f);
 }
 
 void Fan::update(float pres) {

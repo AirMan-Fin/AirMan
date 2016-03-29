@@ -332,7 +332,7 @@ int LiquidCrystal::print(int s) {
 int LiquidCrystal::print(float s, int ll) {
 	int ret = 0;
 	std::string str = toStr((int) s);
-	int ss=s*1000;
+	int ss=(s-((int)s))*1000;
 	std::string str2 = toStr(ss);
 	int len = str2.length();
 	print(str);
