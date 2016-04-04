@@ -24,8 +24,8 @@
  */
 #define MAXAIRFLOW 0.2
 #define MAXAIRSPEED 1.8
-#define AIRSPEEDACCURACY 0.1
-#define AUTOMODEDEFAULTSPEED 7
+#define AIRSPEEDACCURACY 0.05
+#define AUTOMODEDEFAULTSPEED 6
 
 
 class Fan {
@@ -60,7 +60,7 @@ public:
 	/*
 	 * hearthbeat function
 	 */
-	void update(float);
+	bool update(float);
 
 	/*
 	 * makes calculations and sets airflow

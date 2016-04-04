@@ -52,7 +52,7 @@ private:
 
 
 	float blowingTemperature=0;
-	float targetAirflow=0;
+	float targetAirflow=0.666;
 	float tMeas=0;
 
 	float airflow; //airflow...

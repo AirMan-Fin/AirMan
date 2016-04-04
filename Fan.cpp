@@ -21,10 +21,10 @@ Fan::Fan(Millis *m, Eeprom * ee, int fanspeed) {
 	eeprom=ee;
 	uint8_t buff[2];
 	eeprom->read(pipeAreaMem,buff,1);
-	setPipeArea(0.2*0.01f);
+	setPipeArea(buff[0]*0.01f);
 }
 
-void Fan::update(float pres) {
+bool Fan::update(float pres) {
 
 	currentAirSpeed = getAirVelocity(pres);
 	if (!(currentAirSpeed - targetAirSpeed < AIRSPEEDACCURACY
@@ -38,7 +38,7 @@ void Fan::update(float pres) {
 		calibration[((int) frequency) / 5] = (uint8_t) (currentAirSpeed * 100);
 	}
 
-	setFrequency(frequency);
+	return setFrequency(frequency);
 }
 
 bool Fan::setFrequency(float freq) {
@@ -55,7 +55,8 @@ int Fan::setAirFlow(float flow, float pres) {
 	bool ret = 0;
 	if (autoMode) {
 		currentAirSpeed = getAirVelocity(pres);
-		targetAirSpeed = flow / area;
+			//flow=0.2; /// for demo
+		targetAirSpeed = (flow / area);
 		if (targetAirSpeed > MAXAIRSPEED) {
 			ret += 10;
 			targetAirSpeed = MAXAIRSPEED;

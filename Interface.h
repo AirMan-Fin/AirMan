@@ -140,7 +140,6 @@ public:
 			lcd->print(value);
 		} else {
 			lcd->clear();
-			int a = *temp;
 
 			if (timer == 0) {   ///////////temperature printing
 				lcd->print((*temp), 1);
@@ -174,7 +173,7 @@ public:
 					lcd->setCursor(8, 1);
 					lcd->print("ERROR ");
 					noErrors = 0;
-					lcd->print(a);
+					lcd->print(a+1);
 				}
 			}
 			if (noErrors) {
@@ -661,32 +660,32 @@ public:
 		func();
 		bool jj = 0;
 		if (errors[0]) {
-			lcd->print(0);
+			lcd->print(1);
 			jj = 1;
 		}
 		lcd->setCursor(3, 1);
 		if (errors[1]) {
-			lcd->print(1);
+			lcd->print(2);
 			jj = 1;
 		}
 		lcd->setCursor(5, 1);
 		if (errors[2]) {
 			jj = 1;
-			lcd->print(2);
+			lcd->print(3);
 		}
 		lcd->setCursor(7, 1);
 		if (errors[3]) {
-			lcd->print(3);
+			lcd->print(4);
 			jj = 1;
 		}
 		lcd->setCursor(9, 1);
 		if (errors[4]) {
-			lcd->print(4);
+			lcd->print(5);
 			jj = 1;
 		}
 		lcd->setCursor(11, 1);
 		if (errors[5]) {
-			lcd->print(5);
+			lcd->print(6);
 			jj = 1;
 		}
 		lcd->setCursor(13, 1);

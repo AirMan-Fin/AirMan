@@ -125,7 +125,7 @@ void Room::trimmer() { //fine tune function
 			trimmerMultiplier = ((sensorTemp - blowingTemperature)
 					- (temperature - userHeaterMIN))
 					/ (sensorTemp - blowingTemperature);
-			blowingTemperature = userHeaterMIN; //assignment would just result to code visiting trimmer just every other time
+			blowingTemperature = userHeaterMIN;
 			targetAirflow *= trimmerMultiplier;
 			targetTime *= (1 - trimmerMultiplier);
 
@@ -195,7 +195,7 @@ void Room::trimmer() { //fine tune function
  */
 void Room::calculateAirflow() {
 
-	if (B_userAirflow) {
+	if (!B_userAirflow) {
 		//float humidityDifference = humidity-optimalHumidity;//calculate humidity difference
 		airflow = space / targetTime; // put it in a airFlow function and turn it to m3/s
 	} else {

@@ -52,7 +52,7 @@ Millis *mm;
 extern "C" {
 void SysTick_Handler() {
 	mm->tick();
-	if (mm->millis() % 2000 == 0) { // every 10 sec
+	if (mm->millis() % 10000 == 0) { // every 10 sec
 		flTick = 1;
 	}
 	if (mm->millis() % 4000 == 0) { // every 4 sec
@@ -139,11 +139,12 @@ int main(void) {
 			}
 #endif
 		}
-		if (fanTick) { //once every 2 second
+		if (fanTick) { //once every 4 second
 			fanTick = 0;
 #ifdef heartbeat
 			errors[1] = (pres.getValue(&pressureData)) ? 0 : 1; // read pressure sensor
-			fan.update(pressureData); // send value to frequency controller, also the heartbeat
+			//printf("%3.2f \n",pressureData);
+			errors[0] = fan.update(pressureData) ? 0 :1; // send value to frequency controller, also the heartbeat
 #endif
 		}
 		if (flTick) { // once every 10 second
@@ -158,11 +159,11 @@ int main(void) {
 				errors[0] = 0;
 				modbusConnection--;
 				int o = fan.setAirFlow(room.getAirflow(), pressureData);
-				if (o == 0 || o == 1) {
+				if (o == 0) {
 					modbusConnection = 3;
 				} else if (o == 1 || o == 11) { //communication problems
 					errors[0] = 1;
-				} else if (o == 10) {  //too high input value
+				} if (o == 10) {  //too high input value
 					errors[2] = 1;
 				} else {
 					errors[2] = 0;
